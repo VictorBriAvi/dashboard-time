@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[97367,["/dashboard-time/_next/static/chunks/ff1a16fafef87110.js","/dashboard-time/_next/static/chunks/64c0a5e3a0354479.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+0:{"buildId":"CpExUPrlBDzUlvdNzKf5f","rsc":["$","$1","c",{"children":[["$","main",null,{"children":[["$","h1",null,{"children":"Dashboard Time"}],["$","a",null,{"href":"/dashboard","children":"Ir al dashboard"}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
+4:null
