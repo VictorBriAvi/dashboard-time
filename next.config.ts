@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   basePath: isProd ? "/dashboard-time" : "",
   assetPrefix: isProd ? "/dashboard-time/" : "",
 
+  trailingSlash: true,
+
   images: {
     unoptimized: true,
   },
