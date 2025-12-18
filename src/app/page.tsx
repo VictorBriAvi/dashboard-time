@@ -1,10 +1,15 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export default function Page() {
+import BalanceSummary from "./components/BalanceSummary";
+import PorcentajeEmpleados from "./components/PorcentEmployee";
+
+
+
+export default function HomePage() {
   return (
     <main>
-      <h1>Dashboard Time</h1>
-      <a href="/dashboard">Ir al dashboard</a>
+      <BalanceSummary />
+      <PorcentajeEmpleados />
     </main>
   );
 }

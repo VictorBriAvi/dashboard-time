@@ -11,7 +11,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useSummary } from "@/data/hooks/useSummary";
-import SummaryCard from "../../../ui/SummaryCard";
+
 import { useState } from "react";
 import LineChartCustom from "@/ui/LineChartCustom";
 import { useDailySummary } from "@/data/hooks/useDailySummary";
@@ -20,6 +20,7 @@ import { useEmployeeSaleSummary } from "@/data/hooks/useEmployeSaleSummary";
 import PieChartCustomer from "@/ui/PieChartCustome";
 import { useExpenseCategoryReport } from "@/data/hooks/useExpenseCategoryReport";
 import { useSalesSummaryByPayment } from "@/data/hooks/useSalesSumaryByPayment";
+import SummaryCard from "@/ui/SummaryCard";
 
 export default function BalanceSummary() {
   const [rangeType, setRangeType] = useState<"day" | "week" | "month" | "year">("month");

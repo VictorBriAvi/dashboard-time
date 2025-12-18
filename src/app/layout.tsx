@@ -1,7 +1,5 @@
 import "./globals.css";
-import { Providers } from "@/app/providers";
-import Navbar from "@/ui/Navbar";
-import Footer from "@/ui/Footer";
+import { Providers } from "./providers";
 
 export const metadata = {
   title: "Dashboard Time",
@@ -17,11 +15,7 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <Providers>
-          <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
+          {children}
         </Providers>
       </body>
     </html>

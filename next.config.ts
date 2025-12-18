@@ -1,15 +1,13 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production";
+
 const nextConfig: NextConfig = {
-  reactCompiler: true,
-
   output: "export",
-  
-  basePath: "/dashboard-time",
-
   images: {
     unoptimized: true,
   },
+  basePath: isProd ? "/dashboard-time" : "",
 };
 
 export default nextConfig;
