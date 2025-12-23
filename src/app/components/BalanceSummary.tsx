@@ -30,6 +30,7 @@ export default function BalanceSummary() {
   const { data: pieData, isLoading: pieLoading, error: pieError } = useExpenseCategoryReport(fromDate, toDate);
   const { data: paymentData = [], isLoading: barChart } = useSalesSummaryByPayment(fromDate, toDate);
 
+  console.log(lineChart)
   const baseBtn = "px-5 py-2 rounded-lg border transition-all font-medium";
   const getBtnClass = (type: string) =>rangeType === type ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100";
 
@@ -114,8 +115,8 @@ export default function BalanceSummary() {
               title="Evolución de ingresos y gastos"
               data={lineChart}
               xAxisKey="name"
-              lines={["ingresos", "gastos"]}
-              colors={["#10b981", "#ef4444"]}
+              lines={["ingresos", "gastos", "ganancias"]}
+              colors={["#10b981", "#ef4444", "#3b82f6"]}
               height={420}
               loading={isLoadingLineChart}
 

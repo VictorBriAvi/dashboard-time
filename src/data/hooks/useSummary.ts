@@ -3,11 +3,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { reportRepository } from "@/data/repositories/reportRepository";
 
+function toLocalDateString(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function getDateRange(type: "day" | "week" | "month" | "year") {
   const today = new Date();
 
   if (type === "day") {
-    const date = today.toISOString().split("T")[0];
+    const date = toLocalDateString(today);
     return { fromDate: date, toDate: date };
   }
 
@@ -20,16 +27,20 @@ function getDateRange(type: "day" | "week" | "month" | "year") {
     sunday.setDate(monday.getDate() + 6);
 
     return {
-      fromDate: monday.toISOString().split("T")[0],
-      toDate: sunday.toISOString().split("T")[0],
+      fromDate: toLocalDateString(monday),
+      toDate: toLocalDateString(sunday),
     };
   }
 
   if (type === "month") {
-    const fromDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split("T")[0];
-    const toDate = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split("T")[0];
+    const fromDate = toLocalDateString(
+      new Date(today.getFullYear(), today.getMonth(), 1)
+    );
+    const toDate = toLocalDateString(
+      new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    );
     return { fromDate, toDate };
-  }
+  } 
 
   if (type === "year") {
     return {

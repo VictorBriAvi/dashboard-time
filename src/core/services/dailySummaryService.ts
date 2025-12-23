@@ -11,6 +11,7 @@ export const dailySummaryService = {
       return {
         name: `${day} ${month}`,
         ingresos: item.totalVentas,
+        ganancias: item.totalGanancia,
         gastos: item.totalGastos,
       };
     });
