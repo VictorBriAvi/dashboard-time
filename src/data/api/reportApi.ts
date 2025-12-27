@@ -5,25 +5,33 @@ import { DailySummaryRaw } from "@/core/models/DailySummaryReportModel";
 import { EmployeeSaleSummaryRaw } from "@/core/models/EmployeeSaleSummaryReportModel";
 import { ExpenseCategoryRaw } from "@/core/models/ExpenseCategoryRaw";
 import { SalesByPayment } from "@/core/models/SalesByPayment";
+import { SaleByDateRange } from "@/core/models/SaleByDateRangeModel";
 
 export const reportApi = {
   getSummary: async (fromDate: string, toDate: string) => {
-    const response = await axiosClient.get<ApiResponse<SummaryReport>>("/report/summary", {
-      params: { fromDate, toDate },
-    });
+    const response = await axiosClient.get<ApiResponse<SummaryReport>>(
+      "/report/summary",
+      {
+        params: { fromDate, toDate },
+      }
+    );
 
     return response.data.data;
   },
 
   getDailySummary: async (fromDate: string, toDate: string) => {
-    const response = await axiosClient.get<ApiResponse<DailySummaryRaw[]>>("/report/daily-summary", {
-      params: { fromDate, toDate },
-    });
+    const response = await axiosClient.get<ApiResponse<DailySummaryRaw[]>>(
+      "/report/daily-summary",
+      {
+        params: { fromDate, toDate },
+      }
+    );
     return response.data.data;
   },
 
   getEmployeeSaleSummary: async (fromDate: string, toDate: string) => {
-      const response = await axiosClient.get<EmployeeSaleSummaryRaw[]>("/report/employee-sales-summary", 
+    const response = await axiosClient.get<EmployeeSaleSummaryRaw[]>(
+      "/report/employee-sales-summary",
       {
         params: { fromDate, toDate },
       }
@@ -33,7 +41,8 @@ export const reportApi = {
   },
 
   getExpensesByCategory: async (fromDate: string, toDate: string) => {
-    const response = await axiosClient.get<ApiResponse<ExpenseCategoryRaw[]>>("/report/expenses-by-category",
+    const response = await axiosClient.get<ApiResponse<ExpenseCategoryRaw[]>>(
+      "/report/expenses-by-category",
       {
         params: { fromDate, toDate },
       }
@@ -53,7 +62,10 @@ export const reportApi = {
     return response.data;
   },
 
-
-
-
+  getSalesByDateRange: async (fromDate: string,toDate: string) => {
+    const response = await axiosClient.get<SaleByDateRange[]>("/sale/by-date-range", {
+      params: { fromDate, toDate },
+    });
+    return response.data;
+  },
 };

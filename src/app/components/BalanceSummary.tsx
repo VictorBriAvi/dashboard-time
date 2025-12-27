@@ -13,14 +13,15 @@ import {
 import { useSummary } from "@/data/hooks/useSummary";
 
 import { useState } from "react";
-import LineChartCustom from "@/ui/LineChartCustom";
+import LineChartCustom from "@/ui/statistics/LineChartCustom";
 import { useDailySummary } from "@/data/hooks/useDailySummary";
-import BarChartCustom from "@/ui/BarChartCustom";
+import BarChartCustom from "@/ui/statistics/BarChartCustom";
 import { useEmployeeSaleSummary } from "@/data/hooks/useEmployeSaleSummary";
-import PieChartCustomer from "@/ui/PieChartCustome";
+import PieChartCustomer from "@/ui/statistics/PieChartCustome";
 import { useExpenseCategoryReport } from "@/data/hooks/useExpenseCategoryReport";
 import { useSalesSummaryByPayment } from "@/data/hooks/useSalesSumaryByPayment";
-import SummaryCard from "@/ui/SummaryCard";
+import SummaryCard from "@/ui/statistics/SummaryCard";
+import { useSalesByDateRange } from "@/data/hooks/useSalesByDateRange";
 
 export default function BalanceSummary() {
   const [rangeType, setRangeType] = useState<"day" | "week" | "month" | "year">("month");
@@ -29,8 +30,9 @@ export default function BalanceSummary() {
   const { data: barData = [] } = useEmployeeSaleSummary(fromDate, toDate);
   const { data: pieData, isLoading: pieLoading, error: pieError } = useExpenseCategoryReport(fromDate, toDate);
   const { data: paymentData = [], isLoading: barChart } = useSalesSummaryByPayment(fromDate, toDate);
+  const { data: SalesByDate = [], isLoading: salesByDate} = useSalesByDateRange(fromDate, toDate);
 
-  console.log(lineChart)
+  console.log(SalesByDate)
   const baseBtn = "px-5 py-2 rounded-lg border transition-all font-medium";
   const getBtnClass = (type: string) =>rangeType === type ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100";
 

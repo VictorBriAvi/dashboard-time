@@ -4,6 +4,8 @@ import { dailySummaryService } from "@/core/services/dailySummaryService";
 import { employeeSaleRawService, employeeSaleSummaryService } from "@/core/services/employeeSaleSummaryService";
 import { expenseCategoryService } from "@/core/services/expenseCategoryService";
 import { salesByPaymentService } from "@/core/services/salesByPaymentService";
+import { report } from "process";
+import { salesByDateRangeService } from "@/core/services/DaleByDateService";
 
 export const reportRepository = {
   getSummary: async (fromDate: string, toDate: string) => {
@@ -35,4 +37,12 @@ export const reportRepository = {
     const raw = await reportApi.getSalesSummaryByPayment(startDate, endDate);
     return salesByPaymentService.formatForChart(raw);
   },
+
+  getSalesByDateRange: async (fromDate: string, toDate: string) => {
+    const raw = await reportApi.getSalesByDateRange(fromDate, toDate);
+    console.log(raw)
+    return salesByDateRangeService.toRaw(raw);
+  },
+
+  
 };
