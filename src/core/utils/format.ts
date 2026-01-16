@@ -7,17 +7,23 @@ export const formatARS = (value: number) => {
 };
 
 
-export const parseARS = (value: string): number => {
-  if (!value) return 0;
+export const parseARS = (value: string | number): number => {
+  if (value === null || value === undefined) return 0;
 
-  const clean = value.replace(/\$/g, "").trim();
+  // Si ya es número, no tocar
+  if (typeof value === "number") return value;
 
-  // Caso 1: formato AR -> 9.000,50
-  if (clean.includes(",") && clean.includes(".")) {
-    return Number(clean.replace(/\./g, "").replace(",", "."));
+  let clean = value
+    .replace(/\$/g, "")
+    .replace(/\s/g, "");
+
+  // Caso: decimal con coma (110000,00 o 110.000,00)
+  if (clean.includes(",")) {
+    clean = clean.replace(/\./g, "").replace(",", ".");
+    return Number(clean);
   }
 
-  // Caso 2: decimal simple -> 9000.50
+  // Caso: decimal con punto o entero
   return Number(clean);
 };
 

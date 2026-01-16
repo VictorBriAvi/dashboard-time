@@ -2,12 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { saleRepository } from "@/data/repositories/saleRepository";
-import {
-  CreateSaleDraft,
-  CreateSaleDetailDraft,
-} from "@/core/models/sales/CreateSaleDraft";
+import { CreateSaleDraft, CreateSaleDetailDraft, } from "@/core/models/sales/CreateSaleDraft";
 import { Option } from "@/ui/inputs/SearchSelect";
 import { ServiceOption } from "@/core/models/sales/SaleDetailUI";
 
@@ -56,8 +52,10 @@ export function useNewSale() {
 
     const unitPrice = Number(
       serviceSelected.price.replace(/\./g, "").replace(",", ".")
-    );
 
+    );
+          console.log(serviceSelected.price)
+    console.log(unitPrice)
     const discount = Number(discountPercent) || 0;
     const additional = Number(additionalCharge) || 0;
 
