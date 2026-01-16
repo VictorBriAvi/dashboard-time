@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { saleRepository } from "@/data/repositories/saleRepository";
-import { CreateSaleDraft, CreateSaleDetailDraft } from "@/core/models/sales/CreateSaleDraft";
+import {
+  CreateSaleDraft,
+  CreateSaleDetailDraft,
+} from "@/core/models/sales/CreateSaleDraft";
 import { Option } from "@/ui/inputs/SearchSelect";
 import { ServiceOption } from "@/core/models/sales/SaleDetailUI";
 
@@ -16,16 +19,30 @@ export interface SaleDetailUI {
   unitPrice: number;
   discountPercent: number;
   additionalCharge: number;
+  total: number;
 }
+
+const calculateServiceTotal = (
+  unitPrice: number,
+  discountPercent: number,
+  additionalCharge: number
+) => {
+  const discountAmount = (unitPrice * discountPercent) / 100;
+  return unitPrice - discountAmount + additionalCharge;
+};
 
 export function useNewSale() {
   const router = useRouter();
 
   const [clientSelected, setClientSelected] = useState<Option | null>(null);
-  const [serviceSelected, setServiceSelected] = useState<ServiceOption | null>(null);
-  const [employeeSelected, setEmployeeSelected] = useState<Option | null>(null);
+  const [serviceSelected, setServiceSelected] =
+    useState<ServiceOption | null>(null);
+  const [employeeSelected, setEmployeeSelected] =
+    useState<Option | null>(null);
 
-  const [saleDetailsDraft, setSaleDetailsDraft] = useState<CreateSaleDetailDraft[]>([]);
+  const [saleDetailsDraft, setSaleDetailsDraft] = useState<
+    CreateSaleDetailDraft[]
+  >([]);
   const [saleDetailsUI, setSaleDetailsUI] = useState<SaleDetailUI[]>([]);
 
   const [discountPercent, setDiscountPercent] = useState("");
@@ -34,12 +51,17 @@ export function useNewSale() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const addService = () => { if (!serviceSelected || !employeeSelected) return;
+  const addService = () => {
+    if (!serviceSelected || !employeeSelected) return;
 
-    const unitPrice = Number(serviceSelected.price.replace(/\./g, "").replace(",", "."));
+    const unitPrice = Number(
+      serviceSelected.price.replace(/\./g, "").replace(",", ".")
+    );
 
     const discount = Number(discountPercent) || 0;
     const additional = Number(additionalCharge) || 0;
+
+    const total = calculateServiceTotal(unitPrice, discount, additional);
 
     setSaleDetailsDraft((prev) => [
       ...prev,
@@ -62,6 +84,7 @@ export function useNewSale() {
         unitPrice,
         discountPercent: discount,
         additionalCharge: additional,
+        total,
       },
     ]);
 
@@ -77,8 +100,14 @@ export function useNewSale() {
   };
 
   const saleTotal = saleDetailsDraft.reduce((acc, detail) => {
-    const discountAmount = (detail.unitPrice * detail.discountPercent) / 100;
-    return acc + (detail.unitPrice - discountAmount + detail.additionalCharge);
+    return (
+      acc +
+      calculateServiceTotal(
+        detail.unitPrice,
+        detail.discountPercent,
+        detail.additionalCharge
+      )
+    );
   }, 0);
 
   const confirmSale = async (payments: any[]) => {

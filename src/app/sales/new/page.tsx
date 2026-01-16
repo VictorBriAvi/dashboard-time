@@ -16,6 +16,7 @@ import GenericDataTable from "@/ui/dataTable/GenericDataTable";
 import { ColumnDef } from "@tanstack/react-table";
 
 export default function NewSalePage() {
+  const sale = useNewSale();
 
   const columns: ColumnDef<SaleDetailUI>[] = [
     {
@@ -32,16 +33,31 @@ export default function NewSalePage() {
       cell: ({ getValue }) => formatARS(getValue<number>()),
     },
     {
+      header: "Descuento (%)",
+      accessorKey: "discountPercent",
+    },
+    {
+      header: "Adicional",
+      accessorKey: "additionalCharge",
+      cell: ({ getValue }) => formatARS(getValue<number>()),
+    },
+    {
+      header: "Total",
+      accessorKey: "total",
+      cell: ({ getValue }) => formatARS(getValue<number>()),
+    },
+    {
       header: "Acción",
       cell: ({ row }) => (
-        <button onClick={() => sale.removeService(row.index)} className="bg-red-600 text-white px-3 py-1 rounded-md text-xs hover:bg-red-700">
+        <button
+          onClick={() => sale.removeService(row.index)}
+          className="bg-red-600 text-white px-3 py-1 rounded-md text-xs hover:bg-red-700"
+        >
           Eliminar
         </button>
       ),
     },
   ];
-
-  const sale = useNewSale();
 
   const { loadClients } = useClientSearch();
   const { loadEmployees } = useEmployeeSearch();
@@ -55,6 +71,7 @@ export default function NewSalePage() {
       </div>
 
       <div className="grid grid-cols-12 gap-6">
+        {/* Panel izquierdo */}
         <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl shadow-md p-6 space-y-4">
           <AsyncSearchableSelect
             label="Cliente"
@@ -81,11 +98,13 @@ export default function NewSalePage() {
             value={sale.serviceSelected?.price ?? ""}
             disabled
           />
+
           <Input
             label="Descuento (%)"
             value={sale.discountPercent}
             onChange={sale.setDiscountPercent}
           />
+
           <Input
             label="Adicional"
             value={sale.additionalCharge}

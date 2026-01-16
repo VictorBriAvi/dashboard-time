@@ -5,6 +5,7 @@ import { Input } from "@/ui/inputs/Input";
 import { usePaymentModal } from "@/ui/sales/Modals/Hook/usePaymentModal";
 import { ColumnDef } from "@tanstack/react-table";
 import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { formatARS } from "@/core/utils/format";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -14,13 +15,13 @@ interface PaymentModalProps {
   onConfirm: (payments: any[]) => void;
   isLoading?: boolean;
 }
+
 type PaymentRow = {
   paymentMethodId: number;
   paymentMethodName: string;
   amount: number;
   onRemove: () => void;
 };
-
 
 export function PaymentModal({
   isOpen,
@@ -30,8 +31,6 @@ export function PaymentModal({
   onConfirm,
   isLoading,
 }: PaymentModalProps) {
-
-
   const payment = usePaymentModal(totalAmount);
 
   const tableData: PaymentRow[] = payment.payments.map((p, index) => ({
@@ -49,8 +48,10 @@ export function PaymentModal({
     {
       accessorKey: "amount",
       header: "Monto",
-      cell: (info) => (
-        <div className="text-right">${Number(info.getValue()).toFixed(2)}</div>
+      cell: ({ getValue }) => (
+        <div className="text-right">
+          {formatARS(getValue<number>())}
+        </div>
       ),
     },
     {
@@ -76,22 +77,24 @@ export function PaymentModal({
 
         <div className="flex justify-between text-sm font-medium">
           <span>Total:</span>
-          <span>${totalAmount.toFixed(2)}</span>
+          <span>{formatARS(totalAmount)}</span>
         </div>
 
         <div className="flex justify-between text-sm">
           <span>Pagado:</span>
-          <span>${payment.totalPaid.toFixed(2)}</span>
+          <span>{formatARS(payment.totalPaid)}</span>
         </div>
 
         <div className="flex justify-between text-sm">
           <span>Restante:</span>
           <span
             className={
-              payment.remaining === 0 ? "text-green-600" : "text-red-600"
+              payment.remaining === 0
+                ? "text-green-600"
+                : "text-red-600"
             }
           >
-            ${payment.remaining.toFixed(2)}
+            {formatARS(payment.remaining)}
           </span>
         </div>
 
@@ -106,6 +109,7 @@ export function PaymentModal({
           label="Monto"
           value={payment.amount}
           onChange={payment.setAmount}
+          placeholder="$ 0,00"
         />
 
         <button
@@ -114,14 +118,14 @@ export function PaymentModal({
         >
           Agregar pago
         </button>
-        {payment.payments.length > 0 && (
-<GenericDataTable<PaymentRow>
-  data={tableData}
-  columns={paymentColumns}
-  rowKey={(_, i) => i}
-  className="mt-4"
-/>
 
+        {payment.payments.length > 0 && (
+          <GenericDataTable<PaymentRow>
+            data={tableData}
+            columns={paymentColumns}
+            rowKey={(_, i) => i}
+            className="mt-4"
+          />
         )}
 
         <div className="flex justify-end gap-3 pt-4">

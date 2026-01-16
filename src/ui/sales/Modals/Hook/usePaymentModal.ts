@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Option } from "@/ui/inputs/SearchSelect";
+import { parseARS } from "@/core/utils/format";
 
 export interface PaymentItem {
   paymentMethodId: number;
@@ -8,11 +9,10 @@ export interface PaymentItem {
 }
 
 export function usePaymentModal(totalAmount: number) {
-    
   const [paymentMethodSelected, setPaymentMethodSelected] =
     useState<Option | null>(null);
 
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(""); // string para input
   const [payments, setPayments] = useState<PaymentItem[]>([]);
 
   const totalPaid = useMemo(
@@ -21,12 +21,13 @@ export function usePaymentModal(totalAmount: number) {
   );
 
   const remaining = totalAmount - totalPaid;
-  const isCompleted = totalPaid === totalAmount;
+  const isCompleted = remaining === 0;
 
   const addPayment = () => {
     if (!paymentMethodSelected) return;
 
-    const value = Number(amount);
+    const value = parseARS(amount);
+
     if (value <= 0) return;
     if (totalPaid + value > totalAmount) return;
 
@@ -54,21 +55,17 @@ export function usePaymentModal(totalAmount: number) {
   };
 
   return {
-    // state
     paymentMethodSelected,
     amount,
     payments,
 
-    // derived
     totalPaid,
     remaining,
     isCompleted,
 
-    // setters
     setPaymentMethodSelected,
     setAmount,
 
-    // actions
     addPayment,
     removePayment,
     reset,

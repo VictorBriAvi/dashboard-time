@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useServiceCategorieAll } from "@/data/hooks/serviceCategorie/useServiceCategorie";
 import type { ServiceCategorie } from "@/core/models/serviceCategorie/serviceCategorie";
 
+
+
 export function useServiceCategoryPage() {
   const [name, setName] = useState("");
 
