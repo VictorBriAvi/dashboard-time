@@ -1,6 +1,6 @@
 "use client";
 
-import { EmployeeSaleChartData } from "@/core/models/EmployeeSaleSummaryReportModel";
+import { EmployeeSaleChartData } from "@/core/models/reports/EmployeeSaleSummaryReportModel";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const defaultColors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"];

@@ -1,11 +1,11 @@
 import { reportApi } from "@/data/api/reportApi";
-import { summaryService } from "@/core/services/summaryService";
-import { dailySummaryService } from "@/core/services/dailySummaryService";
-import { employeeSaleRawService, employeeSaleSummaryService } from "@/core/services/employeeSaleSummaryService";
-import { expenseCategoryService } from "@/core/services/expenseCategoryService";
-import { salesByPaymentService } from "@/core/services/salesByPaymentService";
-import { report } from "process";
-import { salesByDateRangeService } from "@/core/services/DaleByDateService";
+import { summaryService } from "@/core/mappers/statics/summaryService";
+import { dailySummaryService } from "@/core/mappers/statics/dailySummaryService";
+import { employeeSaleRawService, employeeSaleSummaryService } from "@/core/mappers/statics/employeeSaleSummaryService";
+import { expenseCategoryService } from "@/core/mappers/expenses/expenseCategoryService";
+import { salesByPaymentService } from "@/core/mappers/statics/salesByPaymentService";
+import { saleMapper } from "@/core/mappers/sales/SaleByDateMapper";
+
 
 export const reportRepository = {
   getSummary: async (fromDate: string, toDate: string) => {
@@ -40,8 +40,7 @@ export const reportRepository = {
 
   getSalesByDateRange: async (fromDate: string, toDate: string) => {
     const raw = await reportApi.getSalesByDateRange(fromDate, toDate);
-    console.log(raw)
-    return salesByDateRangeService.toRaw(raw);
+    return saleMapper.fromDto(raw);
   },
 
   

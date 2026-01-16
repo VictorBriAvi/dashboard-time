@@ -1,10 +1,6 @@
 import "./globals.css";
 import { Providers } from "./providers";
-
-export const metadata = {
-  title: "Dashboard Time",
-  description: "Administra tu negocio con inteligencia.",
-};
+import Navbar from "@/ui/Navbar";
 
 export default function RootLayout({
   children,
@@ -15,7 +11,10 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <Providers>
-          {children}
+          <Navbar />
+          <main className="pt-16">
+            {children}
+          </main>
         </Providers>
       </body>
     </html>

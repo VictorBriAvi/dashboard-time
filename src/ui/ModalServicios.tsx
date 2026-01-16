@@ -11,14 +11,13 @@ export default function ModalServicios({
   open,
   onClose,
   empleado,
-  servicios = []
+  servicios = [],
 }: ModalServiciosProps) {
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-fade-in">
-        
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Servicios realizados por {empleado}
         </h2>
@@ -30,7 +29,9 @@ export default function ModalServicios({
               className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
             >
               <span className="text-gray-700">{srv.servicio}</span>
-              <span className="font-semibold text-gray-900">{srv.cantidad}</span>
+              <span className="font-semibold text-gray-900">
+                {srv.cantidad}
+              </span>
             </li>
           ))}
         </ul>

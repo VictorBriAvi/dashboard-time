@@ -1,11 +1,11 @@
 import { axiosClient } from "@/lib/axiosClient";
-import { SummaryReport } from "@/core/models/SummaryReportModel";
+import { SummaryReport } from "@/core/models/reports/SummaryReportModel";
 import { ApiResponse } from "@/core/interfaces/apiResponse";
-import { DailySummaryRaw } from "@/core/models/DailySummaryReportModel";
-import { EmployeeSaleSummaryRaw } from "@/core/models/EmployeeSaleSummaryReportModel";
-import { ExpenseCategoryRaw } from "@/core/models/ExpenseCategoryRaw";
-import { SalesByPayment } from "@/core/models/SalesByPayment";
-import { SaleByDateRange } from "@/core/models/SaleByDateRangeModel";
+import { DailySummaryRaw } from "@/core/models/reports/DailySummaryReportModel";
+import { EmployeeSaleSummaryRaw } from "@/core/models/reports/EmployeeSaleSummaryReportModel";
+import { ExpenseCategoryRaw } from "@/core/models/reports/ExpenseCategoryRaw";
+import { SalesByPayment } from "@/core/models/reports/SalesByPayment";
+import { SaleDTO } from "../DTO/Sale/SaleDTO";
 
 export const reportApi = {
   getSummary: async (fromDate: string, toDate: string) => {
@@ -61,11 +61,11 @@ export const reportApi = {
 
     return response.data;
   },
-
-  getSalesByDateRange: async (fromDate: string,toDate: string) => {
-    const response = await axiosClient.get<SaleByDateRange[]>("/sale/by-date-range", {
+  getSalesByDateRange: async (fromDate: string, toDate: string) => {
+    const response = await axiosClient.get<SaleDTO[]>("/sale/by-date-range", {
       params: { fromDate, toDate },
     });
+
     return response.data;
   },
 };

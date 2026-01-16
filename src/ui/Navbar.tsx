@@ -1,76 +1,241 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X } from "lucide-react"; // íconos (livianos, modernos)
+import { Menu, X, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  return (
-<header className="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-md bg-white/70 border-b border-gray-200">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
-        <div className="flex justify-between items-center h-16">
+  const toggleSubmenu = (key: string) => {
+    setOpenSubmenu(openSubmenu === key ? null : key);
+  };
 
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-md bg-white/70 border-b border-gray-200">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
           <Link href="/" className="text-2xl font-bold text-blue-600">
-            Time for <span className="text-gray-800"> You</span>
+            Time for <span className="text-gray-800">You</span>
           </Link>
 
-          {/* Menú Desktop */}
-          {/* <div className="hidden md:flex space-x-6 items-center gap-8">
-            <Link href="#features" className="text-gray-700 hover:text-blue-600">
-              Características
+          {/* ===== Desktop ===== */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="/sales" className="nav-link">
+              Venta
             </Link>
-            <Link href="#pricing" className="text-gray-700 hover:text-blue-600">
-              Precios
-            </Link>
-            <Link href="#contact" className="text-gray-700 hover:text-blue-600">
-              Contacto
-            </Link>
-          </div> */}
 
-          {/* Botón menú móvil */}
-          <div className="md:hidden flex items-center">
+            {/* Servicios */}
+            <div className="relative">
+              <div className="flex items-center gap-1">
+                <Link href="/services" className="nav-link">
+                  Servicios
+                </Link>
+                <button
+                  onClick={() => toggleSubmenu("services")}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <ChevronDown size={16} />
+                </button>
+              </div>
+
+              {openSubmenu === "services" && (
+                <div className="submenu-premium">
+                  <Link href="/services/categories" className="submenu-btn">
+                    Categorías Servicio
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Gastos */}
+            <div className="relative">
+              <div className="flex items-center gap-1">
+                <Link href="/expenses" className="nav-link">
+                  Gastos
+                </Link>
+                <button
+                  onClick={() => toggleSubmenu("expenses")}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <ChevronDown size={16} />
+                </button>
+              </div>
+
+              {openSubmenu === "expenses" && (
+                <div className="submenu-premium">
+                  <Link href="/expenses/categories" className="submenu-btn">
+                    Categorías Gasto
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Clientes */}
+            <div className="relative">
+              <div className="flex items-center gap-1">
+                <Link href="/clients" className="nav-link">
+                  Clientes
+                </Link>
+                <button
+                  onClick={() => toggleSubmenu("clients")}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <ChevronDown size={16} />
+                </button>
+              </div>
+
+              {openSubmenu === "clients" && (
+                <div className="submenu-premium">
+                  <Link href="/clients/history" className="submenu-btn">
+                    Historial cliente
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <Link href="/payment-types" className="nav-link">
+              Tipos de pago
+            </Link>
+
+            <Link href="/employees" className="nav-link">
+              Colaboradores
+            </Link>
+          </div>
+
+          {/* Botón Mobile */}
+          <div className="md:hidden">
             <button onClick={toggleMenu}>
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
-        {/* Menú Móvil */}
-        {isOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200">
-            <div className="flex flex-col space-y-2 py-2">
+        {/* ===== Mobile ===== */}
+{/* ===== Mobile ===== */}
+{isOpen && (
+  <div className="md:hidden bg-white border-t border-gray-200 py-2">
+    {[
+      {
+        key: "sales",
+        label: "Venta",
+        href: "/sales",
+      },
+      {
+        key: "services",
+        label: "Servicios",
+        href: "/services",
+        sub: [{ label: "Categorías", href: "/services/categories" }],
+      },
+      {
+        key: "expenses",
+        label: "Gastos",
+        href: "/expenses",
+        sub: [{ label: "Categorías", href: "/expenses/categories" }],
+      },
+      {
+        key: "clients",
+        label: "Clientes",
+        href: "/clients",
+        sub: [{ label: "Historial cliente", href: "/clients/history" }],
+      },
+      {
+        key: "payment-types",
+        label: "Tipos de pago",
+        href: "/payment-types",
+      },
+      {
+        key: "employees",
+        label: "Colaboradores",
+        href: "/employees",
+      },
+    ].map((item) => (
+      <div key={item.key}>
+        <div className="flex justify-between items-center px-4 py-2">
+          <Link
+            href={item.href}
+            onClick={toggleMenu}
+            className="font-medium text-gray-700"
+          >
+            {item.label}
+          </Link>
+
+          {item.sub && (
+            <button
+              onClick={() => toggleSubmenu(item.key)}
+              className="p-1"
+            >
+              <ChevronDown size={16} />
+            </button>
+          )}
+        </div>
+
+        {item.sub && openSubmenu === item.key && (
+          <div className="pl-8 pb-2 text-sm text-gray-600">
+            {item.sub.map((s) => (
               <Link
-                href="#features"
-                className="text-gray-700 px-4 py-2 hover:bg-gray-100"
+                key={s.href}
+                href={s.href}
                 onClick={toggleMenu}
+                className="block py-1"
               >
-                Características
+                {s.label}
               </Link>
-              <Link
-                href="#pricing"
-                className="text-gray-700 px-4 py-2 hover:bg-gray-100"
-                onClick={toggleMenu}
-              >
-                Precios
-              </Link>
-              <Link
-                href="#contact"
-                className="text-gray-700 px-4 py-2 hover:bg-gray-100"
-                onClick={toggleMenu}
-              >
-                Contacto
-              </Link>
-              <button className="bg-blue-600 text-white mx-4 py-2 rounded-md hover:bg-blue-700 transition">
-                Iniciar sesión
-              </button>
-            </div>
+            ))}
           </div>
         )}
+      </div>
+    ))}
+  </div>
+)}
+
       </nav>
+
+      <style jsx>{`
+        .nav-link {
+          color: #374151;
+          font-weight: 500;
+        }
+
+        .nav-link:hover {
+          color: #2563eb;
+        }
+
+        .submenu-premium {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          margin-top: 0.75rem;
+          padding: 0.75rem;
+          background: white;
+          border-radius: 0.75rem;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+          min-width: 220px;
+          z-index: 50;
+        }
+
+        .submenu-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 1rem;
+          border-radius: 0.5rem;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #374151;
+          transition: all 0.2s ease;
+        }
+
+        .submenu-btn:hover {
+          background: #f0f9ff;
+          color: #2563eb;
+          transform: translateX(2px);
+        }
+      `}</style>
     </header>
   );
 }
