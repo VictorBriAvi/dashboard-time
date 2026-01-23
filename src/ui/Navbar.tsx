@@ -127,14 +127,14 @@ export default function Navbar() {
       {
         key: "services",
         label: "Servicios",
-        href: "/services",
-        sub: [{ label: "Categorías", href: "/services/categories" }],
+        href: "/serviceType",
+        sub: [{ label: "Categorías", href: "/serviceType/categories" }],
       },
       {
         key: "expenses",
         label: "Gastos",
         href: "/expenses",
-        sub: [{ label: "Categorías", href: "/expenses/categories" }],
+        sub: [{ label: "Categorías", href: "/expenses/expensesCategorie" }],
       },
       {
         key: "clients",
