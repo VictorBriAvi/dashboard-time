@@ -101,7 +101,7 @@ export default function Navbar() {
               Tipos de pago
             </Link>
 
-            <Link href="/employees" className="nav-link">
+            <Link href="/employee" className="nav-link">
               Colaboradores
             </Link>
           </div>

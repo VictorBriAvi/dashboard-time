@@ -10,6 +10,11 @@ import { useExpenseAll } from "@/data/hooks/expense/useExpense";
 
 export function useExpensePage() {
   // ======================
+  // Fecha creación
+  // ======================
+  const [expenseDate, setExpenseDate] = useState<string>("");
+
+  // ======================
   // Crear
   // ======================
   const [description, setDescription] = useState("");
@@ -25,7 +30,8 @@ export function useExpensePage() {
   const [expenseTypeFilter, setExpenseTypeFilter] =
     useState<Option | null>(null);
 
-  const [dateFilter, setDateFilter] = useState<string>(""); // ✅ NUEVO
+const [fromDate, setFromDate] = useState<string>("");
+const [toDate, setToDate] = useState<string>("");
 
   // ======================
   // Editar
@@ -51,37 +57,56 @@ export function useExpensePage() {
     isError,
     refetch,
   } = useExpenseAll(
-    search,
-    expenseTypeFilter?.value,
-    dateFilter || undefined // ✅ NUEVO
+  search,
+  expenseTypeFilter?.value,
+  fromDate || undefined,
+  toDate || undefined
   );
 
-  // ======================
-  // Crear
-  // ======================
-  const addExpense = async () => {
-    if (!description.trim() || !price || !expenseTypeSelected || isCreating)
-      return;
+// ======================
+// Crear
+// ======================
+const normalizePrice = (value: string) =>
+  value.replace(/\./g, "").replace(",", ".");
 
-    try {
-      setIsCreating(true);
+const addExpense = async () => {
+  if (
+    !description.trim() ||
+    !price ||
+    !expenseTypeSelected ||
+    !expenseDate ||
+    isCreating
+  )
+    return;
 
-      await expenseRepository.createExpense({
-        description,
-        price: Number(price),
-        expenseTypeId: expenseTypeSelected.value,
-      });
+  const normalizedPrice = normalizePrice(price);
+  const parsedPrice = Number(normalizedPrice);
 
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+  if (isNaN(parsedPrice) || parsedPrice <= 0) return;
 
-      setDescription("");
-      setPrice("");
-      setExpenseTypeSelected(null);
-      refetch();
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  try {
+    setIsCreating(true);
+
+    await expenseRepository.createExpense({
+      description,
+      price: parsedPrice,
+      expenseTypeId: expenseTypeSelected.value,
+      expenseDate,
+    });
+
+    queryClient.invalidateQueries({ queryKey: ["expenses"] });
+
+    setDescription("");
+    setPrice("");
+    setExpenseTypeSelected(null);
+    setExpenseDate("");
+
+    refetch();
+  } finally {
+    setIsCreating(false);
+  }
+};
+
 
   // ======================
   // Editar
@@ -131,6 +156,19 @@ export function useExpensePage() {
     }
   };
 
+  // ======================
+// Limpiar filtros
+// ======================
+const clearFilters = () => {
+  setSearch("");
+  setExpenseTypeFilter(null);
+  setFromDate("");
+  setToDate("");
+
+  refetch();
+};
+
+
   return {
     // crear
     description,
@@ -139,17 +177,20 @@ export function useExpensePage() {
     setPrice,
     expenseTypeSelected,
     setExpenseTypeSelected,
+    expenseDate,
+    setExpenseDate,
     addExpense,
     isCreating,
 
     // filtros
-    search,
-    setSearch,
-    expenseTypeFilter,
-    setExpenseTypeFilter,
-    dateFilter,        // ✅ NUEVO
-    setDateFilter,     // ✅ NUEVO
-
+      search,
+      setSearch,
+      expenseTypeFilter,
+      setExpenseTypeFilter,
+      fromDate,
+      setFromDate,
+      toDate,
+      setToDate,
     // listar
     expenses,
     isLoading,
@@ -159,19 +200,19 @@ export function useExpensePage() {
     editingExpense,
     setEditingExpense,
     openEditModal,
-
     editDescription,
     setEditDescription,
     editPrice,
     setEditPrice,
     editExpenseType,
     setEditExpenseType,
-
     isUpdating,
     saveEditExpense,
 
     // eliminar
     isDeleting,
     deleteExpense,
+
+    clearFilters
   };
 }

@@ -1,16 +1,17 @@
-export interface Expense{
+export interface Expense {
   id: number;
   description: string;
   price: number;
-  nameExpenseType: string;
-  expensesDateStr: string;
+  expensesDateStr: string;   // string formateado (UI)
   expenseTypeId: number;
+  nameExpenseType: string;
 }
 
 export interface CreateExpense {
   description: string,
   price: number,
   expenseTypeId: number
+  expenseDate: string;
 } 
 
 export interface EditExpense {

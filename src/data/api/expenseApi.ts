@@ -4,16 +4,25 @@ import { ExpenseDTO } from "../DTO/expense/expenseDTO";
 
 export const expenseApi = {
     
+
 All: async (
   search?: string,
-  ExpenseCategorieId?: number,
-  date?: string
+  expenseTypeId?: number,
+  fromDate?: string,
+  toDate?: string
 ): Promise<ExpenseDTO[]> => {
-  const response = await axiosClient.get<ExpenseDTO[]>("/Expense", {
-    params: { search, ExpenseCategorieId, date },
+  const { data } = await axiosClient.get<ExpenseDTO[]>("/Expense", {
+    params: {
+      search,
+      expenseTypeId,
+      fromDate,
+      toDate,
+    },
   });
-  return response.data;
+
+  return data;
 },
+
 
 
   Create: async (payload: CreateExpense) => {

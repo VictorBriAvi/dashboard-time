@@ -3,15 +3,23 @@ import { expenseAllMapper } from "@/core/mappers/expenses/expenseMapper";
 import { CreateExpense, EditExpense } from "@/core/models/expense/expense";
 
 export const expenseRepository = {
-
-AllExpense: async (
+All: async (
   search?: string,
-  expenseCategorieId?: number,
-  date?: string
+  expenseTypeId?: number,
+  fromDate?: string,
+  toDate?: string
 ) => {
-  const raw = await expenseApi.All(search, expenseCategorieId, date);
+  const raw = await expenseApi.All(
+    search,
+    expenseTypeId,
+    fromDate,
+    toDate
+  );
+
   return expenseAllMapper.All(raw);
 },
+
+
 
   createExpense: async (create: CreateExpense) => {
     return await expenseApi.Create(create);

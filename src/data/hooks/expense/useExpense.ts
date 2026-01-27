@@ -6,21 +6,22 @@ import { expenseRepository } from "@/data/repositories/expenseRepository";
 
 export const useExpenseAll = (
   search: string,
-  expenseCategorieId?: number,
-  date?: string
+  expenseTypeId?: number,
+  fromDate?: string,
+  toDate?: string
 ) => {
-  const result = useQuery<Expense[]>({
-    queryKey: ["expense", search, expenseCategorieId, date],
+  const query = useQuery<Expense[]>({
+    queryKey: ["expenses", search, expenseTypeId, fromDate, toDate],
     queryFn: () =>
-      expenseRepository.AllExpense(search, expenseCategorieId, date),
+      expenseRepository.All(search, expenseTypeId, fromDate, toDate),
     staleTime: 1000 * 60 * 5,
   });
 
   return {
-    data: result.data ?? [],
-    isLoading: result.isLoading,
-    isError: result.isError,
-    error: result.error,
-    refetch: result.refetch,
+    data: query.data ?? [],
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
   };
 };

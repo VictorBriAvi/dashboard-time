@@ -62,9 +62,17 @@ export default function ExpensePage() {
             onChange={expensePage.setExpenseTypeSelected}
           />
 
+          {/* ✅ FECHA DEL GASTO */}
+          <Input
+            type="date"
+            label="Fecha del gasto"
+            value={expensePage.expenseDate}
+            onChange={expensePage.setExpenseDate}
+          />
+
           <button
             onClick={expensePage.addExpense}
-            disabled={expensePage.isCreating}
+            disabled={expensePage.isCreating || !expensePage.expenseDate}
             className={`w-full rounded-md py-2 text-sm transition ${
               expensePage.isCreating
                 ? "bg-gray-400 cursor-not-allowed"
@@ -93,14 +101,30 @@ export default function ExpensePage() {
             onChange={expensePage.setExpenseTypeFilter}
           />
 
-          {/* 🔥 NUEVO FILTRO POR FECHA */}
-          <Input
-            type="date"
-            label="Filtrar por fecha"
-            value={expensePage.dateFilter ?? ""}
-            onChange={expensePage.setDateFilter}
-          />
+          {/* RANGO DE FECHAS */}
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="date"
+              label="Desde"
+              value={expensePage.fromDate}
+              onChange={expensePage.setFromDate}
+            />
 
+            <Input
+              type="date"
+              label="Hasta"
+              value={expensePage.toDate}
+              onChange={expensePage.setToDate}
+            />
+          </div>
+
+
+          <button
+            onClick={expensePage.clearFilters}
+            className="text-sm underline text-gray-500"
+          >
+            Limpiar filtros
+          </button>
           <GenericDataTable<Expense>
             data={expensePage.expenses}
             columns={columns}

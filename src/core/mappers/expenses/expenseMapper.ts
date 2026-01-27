@@ -17,10 +17,11 @@ export const expenseAllMapper = {
     return dtos.map((dto) => ({
       id: dto.id,
       description: dto.description,
-      price: dto.price,
-      nameExpenseType: dto.nameExpenseType,
-      expensesDateStr: dto.expensesDateStr,
+      price: dto.price,  
+      expensesDateStr: dto.expensesDateStr, 
       expenseTypeId: dto.expenseTypeId,
+      nameExpenseType: dto.nameExpenseType,
     }));
   },
 };
+
