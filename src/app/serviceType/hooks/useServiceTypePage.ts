@@ -3,108 +3,111 @@
 import { useState } from "react";
 import { Option } from "@/ui/inputs/SearchSelect";
 import { useServiceTypeAll } from "@/data/hooks/serviceType/useServiceType";
-import type {
+import {
   CreateServiceType,
   EditServiceType,
   ServiceType,
 } from "@/core/models/serviceType/ServiceType";
-import { serviceTypeRepository } from "@/data/repositories/serviceTypeRepository";
-import { useQueryClient } from "@tanstack/react-query";
+import {
+  useCreateServiceType,
+  useUpdateServiceType,
+  useDeleteServiceType,
+} from "@/data/hooks/serviceType/useServiceTypeMutation";
 
 export function useServiceTypePage() {
+  // ======================
+  // Create state
+  // ======================
   const [categorySelected, setCategorySelected] = useState<Option | null>(null);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
+
+  // ======================
+  // Filters
+  // ======================
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<Option | null>(null);
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
-  const [editingService, setEditingService] = useState<EditServiceType | null>(null );
-  const [isUpdating, setIsUpdating] = useState(false);
+
+  // ======================
+  // Edit state
+  // ======================
+  const [editingService, setEditingService] =
+    useState<ServiceType | null>(null);
   const [editCategory, setEditCategory] = useState<Option | null>(null);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
-  
 
-  const { data: services = [], isLoading, isError, refetch } = useServiceTypeAll(search, categoryFilter?.value);
+  // ======================
+  // Query
+  // ======================
+  const {
+    data: services = [],
+    isLoading,
+    isError,
+  } = useServiceTypeAll(search, categoryFilter?.value);
 
+  // ======================
+  // Mutations
+  // ======================
+  const createService = useCreateServiceType();
+  const updateService = useUpdateServiceType();
+  const deleteService = useDeleteServiceType();
 
-    const queryClient = useQueryClient();
-  // =========================
-  // Crear
-  // =========================
-  const addService = async () => {
-    if (!categorySelected || !name.trim() || !price || isCreating) return;
+  // ======================
+  // Create
+  // ======================
+  const addService = () => {
+    if (!categorySelected || !name.trim() || !price) return;
 
-    try {
-      setIsCreating(true);
+    const payload: CreateServiceType = {
+      name: name.trim(),
+      price: Number(price),
+      serviceCategorieId: categorySelected.value,
+    };
 
-      await serviceTypeRepository.createServiceType({
-        name,
-        price: Number(price),
-        serviceCategorieId: categorySelected.value,
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ["service-types"],
-      });
-
-      setName("");
-      setPrice("");
-      setCategorySelected(null);
-    } catch (error) {
-      console.error("Error al crear el servicio", error);
-    } finally {
-      setIsCreating(false);
-    }
+    createService.mutate(payload, {
+      onSuccess: () => {
+        setName("");
+        setPrice("");
+        setCategorySelected(null);
+      },
+    });
   };
 
+  // ======================
+  // Edit
+  // ======================
   const openEditModal = (service: ServiceType) => {
-    
     setEditingService(service);
     setEditName(service.name);
     setEditPrice(String(service.price));
-    setEditCategory({ value: service.serviceCategorieId, label: service.serviceCategorieName});
-
+    setEditCategory({
+      value: service.serviceCategorieId,
+      label: service.serviceCategorieName,
+    });
   };
 
-  const saveEditService = async () => {
+  const saveEditService = () => {
     if (!editingService || !editCategory) return;
 
-    try {
-      setIsUpdating(true);
+    const payload: EditServiceType = {
+      id: editingService.id,
+      name: editName.trim(),
+      price: Number(editPrice),
+      serviceCategorieId: editCategory.value,
+    };
 
-      await serviceTypeRepository.updateServiceType({
-        id: editingService.id,
-        name: editName.trim(),
-        price: Number(editPrice),
-        serviceCategorieId: editCategory.value,
-      });
-
-
-      setEditingService(null);
-            refetch();
-    } catch (error) {
-      console.error("Error al actualizar el servicio", error);
-    } finally {
-      setIsUpdating(false);
-    }
+    updateService.mutate(payload, {
+      onSuccess: () => setEditingService(null),
+    });
   };
 
-
-      const deleteServiceType = async (id: number) => {
-      if (isDeleting !== null) return;
-  
-      try {
-        setIsDeleting(id);
-        await serviceTypeRepository.deleteServiceType(id);
-        refetch();
-      } catch (error) {
-        console.error("Error al eliminar la categoría", error);
-      } finally {
-        setIsDeleting(null);
-      }
-    };
+  // ======================
+  // Delete
+  // ======================
+  const removeService = (id: number) => {
+    deleteService.mutate(id);
+  };
 
   return {
     // crear
@@ -115,7 +118,7 @@ export function useServiceTypePage() {
     price,
     setPrice,
     addService,
-    isCreating,
+    isCreating: createService.isPending,
 
     // filtros
     search,
@@ -129,8 +132,8 @@ export function useServiceTypePage() {
     isError,
 
     // eliminar
-    isDeleting,
-    deleteServiceType,
+    removeService,
+    isDeleting: deleteService.isPending,
 
     // editar
     editingService,
@@ -144,8 +147,7 @@ export function useServiceTypePage() {
     editPrice,
     setEditPrice,
 
-    isUpdating,
     saveEditService,
-
+    isUpdating: updateService.isPending,
   };
 }

@@ -2,22 +2,27 @@ export interface Expense {
   id: number;
   description: string;
   price: number;
-  expensesDateStr: string;   // string formateado (UI)
+  expensesDateStr: string;
   expenseTypeId: number;
   nameExpenseType: string;
+  paymentTypeId: number;
+  paymentTypeName: string;
 }
 
 export interface CreateExpense {
   description: string,
   price: number,
-  expenseTypeId: number
+  expenseTypeId: number;
   expenseDate: string;
+  paymentTypeId: number;
 } 
 
 export interface EditExpense {
   id: number;
   description: string,
   price: number,
-  expenseTypeId: number
+  expenseTypeId: number,
+  expenseDate: string,
+  paymentTypeId: number;
 }
 

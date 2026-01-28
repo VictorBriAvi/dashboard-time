@@ -31,6 +31,7 @@ All: async (
   },
 
   Update: async(payload: EditExpense) => {
+    console.log(payload)
     const {id, ...body} = payload;
     const { data } = await axiosClient.put(`/Expense/${id}`, body);
 

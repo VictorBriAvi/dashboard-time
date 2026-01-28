@@ -5,4 +5,6 @@ export interface ExpenseDTO {
   nameExpenseType: string;
   expensesDateStr: string;
   expenseTypeId: number;
+  paymentTypeId: number;
+  paymentTypeName: string;
 }

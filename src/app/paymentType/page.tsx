@@ -70,40 +70,39 @@ export default function PaymentTypePage() {
               },
               {
                 id: "delete",
-                label: (row) =>
-                  paymentTypePage.isDeleting === row.id
-                    ? "Eliminando..."
-                    : "Eliminar",
+                label: paymentTypePage.isDeleting ? "Eliminando..." : "Eliminar",
                 variant: "delete",
-                disabled: () => paymentTypePage.isDeleting !== null,
+                disabled: () => paymentTypePage.isDeleting,
                 onClick: (row) => {
                   if (
                     window.confirm(
-                      `¿Seguro que deseas eliminar el tipo de pago "${row.name}"?`,
+                      `¿Seguro que deseas eliminar el tipo de pago "${row.name}"?`
                     )
                   ) {
-                    paymentTypePage.deletePaymentType(row.id);
+                    paymentTypePage.removePaymentType(row.id);
                   }
                 },
-              },
+              }
+              ,
             ]}
           />
         </div>
       </div>
 
       {paymentTypePage.editingPaymentType && (
-        <EditPaymentTypeModal
-          paymentType={paymentTypePage.editingPaymentType}
-          isUpdating={paymentTypePage.isUpdating}
-          onChangeName={(value) =>
-            paymentTypePage.setEditingPaymentType({
-              ...paymentTypePage.editingPaymentType!,
-              name: value,
-            })
-          }
-          onClose={() => paymentTypePage.setEditingPaymentType(null)}
-          onSave={paymentTypePage.updatePaymentType}
-        />
+      <EditPaymentTypeModal
+        paymentType={paymentTypePage.editingPaymentType}
+        isUpdating={paymentTypePage.isUpdating}
+        onChangeName={(value) =>
+          paymentTypePage.setEditingPaymentType({
+            ...paymentTypePage.editingPaymentType!,
+            name: value,
+          })
+        }
+        onClose={() => paymentTypePage.setEditingPaymentType(null)}
+        onSave={paymentTypePage.savePaymentType}
+      />
+
       )}
     </section>
   );

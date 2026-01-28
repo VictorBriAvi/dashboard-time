@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { saleRepository } from "@/data/repositories/saleRepository";
+import { Option } from "@/ui/inputs/SearchSelect";
+import { ServiceOption } from "@/core/models/sales/SaleDetailUI";
 import {
   CreateSaleDraft,
   CreateSaleDetailDraft,
 } from "@/core/models/sales/CreateSaleDraft";
-import { Option } from "@/ui/inputs/SearchSelect";
-import { ServiceOption } from "@/core/models/sales/SaleDetailUI";
-// import { parseARS } from "@/core/utils/format";
+import { useCreateSale } from "@/data/hooks/Sales/useCreateSaleMutation";
 
 export interface SaleDetailUI {
   serviceTypeId: number;
@@ -22,13 +21,21 @@ export interface SaleDetailUI {
   total: number;
 }
 
+const normalizeNumber = (value: string | number): number => {
+  if (typeof value === "number") return value;
+
+  return (
+    Number(
+      value.replace(/\./g, "").replace(",", "."),
+    ) || 0
+  );
+};
+
 const calculateServiceTotal = (
   unitPrice: string | number,
   discountPercent: number,
   additionalCharge: number,
 ) => {
-  console.log("unitPrice:", unitPrice, "typeof:", typeof unitPrice);
-
   const price = normalizeNumber(unitPrice);
   const discount = Number(discountPercent) || 0;
   const additional = Number(additionalCharge) || 0;
@@ -36,57 +43,53 @@ const calculateServiceTotal = (
   return price - (price * discount) / 100 + additional;
 };
 
-const normalizeNumber = (value: string | number): number => {
-  if (typeof value === "number") return value;
-
-  return (
-    Number(
-      value
-        .replace(/\./g, "") // miles
-        .replace(",", "."), // decimal
-    ) || 0
-  );
-};
-
 export function useNewSale() {
   const router = useRouter();
+  const createSale = useCreateSale();
 
+  // ======================
+  // Selecciones
+  // ======================
   const [clientSelected, setClientSelected] = useState<Option | null>(null);
-  const [serviceSelected, setServiceSelected] = useState<ServiceOption | null>(
-    null,
-  );
-  const [employeeSelected, setEmployeeSelected] = useState<Option | null>(null);
+  const [serviceSelected, setServiceSelected] =
+    useState<ServiceOption | null>(null);
+  const [employeeSelected, setEmployeeSelected] =
+    useState<Option | null>(null);
 
-  const [saleDetailsDraft, setSaleDetailsDraft] = useState<
-    CreateSaleDetailDraft[]
-  >([]);
-  const [saleDetailsUI, setSaleDetailsUI] = useState<SaleDetailUI[]>([]);
+  // ======================
+  // Detalles
+  // ======================
+  const [saleDetailsDraft, setSaleDetailsDraft] =
+    useState<CreateSaleDetailDraft[]>([]);
+  const [saleDetailsUI, setSaleDetailsUI] =
+    useState<SaleDetailUI[]>([]);
 
-  const [discountPercent, setDiscountPercent] = useState<number>(0);
-  const [additionalCharge, setAdditionalCharge] = useState<number>(0);
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [additionalCharge, setAdditionalCharge] = useState(0);
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
+  // ======================
+  // Actions
+  // ======================
   const addService = () => {
     if (!serviceSelected || !employeeSelected) return;
 
-    const unitPrice = serviceSelected.price;
-
-    const discount = Number(discountPercent) || 0;
-    const additional = Number(additionalCharge) || 0;
-
-    const total = calculateServiceTotal(unitPrice, discount, additional);
+    const total = calculateServiceTotal(
+      serviceSelected.price,
+      discountPercent,
+      additionalCharge,
+    );
 
     setSaleDetailsDraft((prev) => [
       ...prev,
       {
         serviceTypeId: serviceSelected.value,
         employeeId: employeeSelected.value,
-        unitPrice,
-        discountPercent: discount,
-        additionalCharge: additional,
-        total, // 👈 CLAVE
+        unitPrice: serviceSelected.price,
+        discountPercent,
+        additionalCharge,
+        total,
       },
     ]);
 
@@ -97,9 +100,9 @@ export function useNewSale() {
         serviceName: serviceSelected.label,
         employeeId: employeeSelected.value,
         employeeName: employeeSelected.label,
-        unitPrice,
-        discountPercent: discount,
-        additionalCharge: additional,
+        unitPrice: serviceSelected.price,
+        discountPercent,
+        additionalCharge,
         total,
       },
     ]);
@@ -116,11 +119,11 @@ export function useNewSale() {
   };
 
   const saleTotal = saleDetailsDraft.reduce(
-    (acc, detail) => acc + detail.total,
+    (acc, d) => acc + d.total,
     0,
   );
 
-  const confirmSale = async (payments: any[]) => {
+  const confirmSale = (payments: any[]) => {
     if (!clientSelected) {
       alert("Seleccioná un cliente");
       return;
@@ -135,21 +138,19 @@ export function useNewSale() {
       saleDetails: saleDetailsDraft,
     };
 
-    try {
-      setIsSaving(true);
-      await saleRepository.createSale(payload);
-      router.push("/sales");
-    } catch (e) {
-      console.error(e);
-      alert("Error al guardar la venta");
-    } finally {
-      setIsSaving(false);
-      setIsPaymentModalOpen(false);
-    }
+    createSale.mutate(payload, {
+      onSuccess: () => {
+        setIsPaymentModalOpen(false);
+        router.push("/sales");
+      },
+      onError: () => {
+        alert("Error al guardar la venta");
+      },
+    });
   };
 
   return {
-    // estado
+    // state
     clientSelected,
     serviceSelected,
     employeeSelected,
@@ -159,7 +160,7 @@ export function useNewSale() {
     additionalCharge,
     saleTotal,
     isPaymentModalOpen,
-    isSaving,
+    isSaving: createSale.isPending,
 
     // setters
     setClientSelected,
@@ -169,7 +170,7 @@ export function useNewSale() {
     setAdditionalCharge,
     setIsPaymentModalOpen,
 
-    // acciones
+    // actions
     addService,
     removeService,
     confirmSale,

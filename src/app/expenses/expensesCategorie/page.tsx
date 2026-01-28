@@ -55,53 +55,52 @@ export default function ExpenseCategoryPage() {
             placeholder="Ej: Alquiler"
           />
 
-          <GenericDataTable<ExpenseCategorie>
-            data={categoryPage.categories}
-            columns={columns}
-            rowKey={(row) => row.id}
-            rowActions={[
-              {
-                id: "edit",
-                label: "Editar",
-                variant: "edit",
-                onClick: categoryPage.openEditModal,
-              },
-              {
-                id: "delete",
-                label: (row) =>
-                  categoryPage.isDeleting === row.id
-                    ? "Eliminando..."
-                    : "Eliminar",
-                variant: "delete",
-                disabled: () => categoryPage.isDeleting !== null,
-                onClick: (row) => {
-                  if (
-                    window.confirm(
-                      `¿Seguro que deseas eliminar la categoría "${row.name}"?`,
-                    )
-                  ) {
-                    categoryPage.deleteCategory(row.id);
-                  }
-                },
-              },
-            ]}
-          />
+<GenericDataTable<ExpenseCategorie>
+  data={categoryPage.categories}
+  columns={columns}
+  rowKey={(row) => row.id}
+  rowActions={[
+    {
+      id: "edit",
+      label: "Editar",
+      variant: "edit",
+      onClick: categoryPage.openEditModal,
+    },
+    {
+      id: "delete",
+      label: categoryPage.isDeleting ? "Eliminando..." : "Eliminar",
+      variant: "delete",
+      disabled: () => categoryPage.isDeleting,
+      onClick: (row) => {
+        if (
+          window.confirm(
+            `¿Seguro que deseas eliminar la categoría "${row.name}"?`
+          )
+        ) {
+          categoryPage.removeCategory(row.id);
+        }
+      },
+    },
+  ]}
+/>
+
         </div>
       </div>
 
       {categoryPage.editingCategory && (
-        <EditExpenseCategoryModal
-          category={categoryPage.editingCategory}
-          isUpdating={categoryPage.isUpdating}
-          onChangeName={(value) =>
-            categoryPage.setEditingCategory({
-              ...categoryPage.editingCategory!,
-              name: value,
-            })
-          }
-          onClose={() => categoryPage.setEditingCategory(null)}
-          onSave={categoryPage.updateCategory}
-        />
+<EditExpenseCategoryModal
+  category={categoryPage.editingCategory}
+  isUpdating={categoryPage.isUpdating}
+  onChangeName={(value) =>
+    categoryPage.setEditingCategory({
+      ...categoryPage.editingCategory!,
+      name: value,
+    })
+  }
+  onClose={() => categoryPage.setEditingCategory(null)}
+  onSave={categoryPage.saveEditCategory}
+/>
+
       )}
     </section>
   );

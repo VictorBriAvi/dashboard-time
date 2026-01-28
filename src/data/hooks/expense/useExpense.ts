@@ -10,11 +10,12 @@ export const useExpenseAll = (
   fromDate?: string,
   toDate?: string
 ) => {
-  const query = useQuery<Expense[]>({
+  const query = useQuery({
     queryKey: ["expenses", search, expenseTypeId, fromDate, toDate],
-    queryFn: () =>
-      expenseRepository.All(search, expenseTypeId, fromDate, toDate),
+    queryFn: () => expenseRepository.All(search, expenseTypeId, fromDate, toDate),
     staleTime: 1000 * 60 * 5,
+
+    placeholderData: (previousData) => previousData,
   });
 
   return {
@@ -22,6 +23,5 @@ export const useExpenseAll = (
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
-    refetch: query.refetch,
   };
 };

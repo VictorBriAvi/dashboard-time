@@ -149,14 +149,15 @@ export default function NewSalePage() {
             </button>
           </div>
 
-          <PaymentModal
-            isOpen={sale.isPaymentModalOpen}
-            totalAmount={sale.saleTotal}
-            loadPaymentMethods={loadPaymentType}
-            isLoading={sale.isSaving}
-            onClose={() => sale.setIsPaymentModalOpen(false)}
-            onConfirm={sale.confirmSale}
-          />
+<PaymentModal
+  isOpen={sale.isPaymentModalOpen}
+  totalAmount={sale.saleTotal}
+  loadPaymentMethods={loadPaymentType}
+  isLoading={sale.isSaving}
+  onClose={() => sale.setIsPaymentModalOpen(false)}
+  onConfirm={sale.confirmSale}
+/>
+
         </div>
       </div>
     </section>

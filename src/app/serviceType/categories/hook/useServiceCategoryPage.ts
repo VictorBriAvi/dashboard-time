@@ -1,96 +1,89 @@
 "use client";
 
 import { useState } from "react";
+import { ServiceCategorie } from "@/core/models/serviceCategorie/serviceCategorie";
 import { useServiceCategorieAll } from "@/data/hooks/serviceCategorie/useServiceCategorie";
-import { serviceCategorieRepository } from "@/data/repositories/serviceCategorieRepository";
-import type { ServiceCategorie } from "@/core/models/serviceCategorie/serviceCategorie";
+import {
+  useCreateServiceCategory,
+  useUpdateServiceCategory,
+  useDeleteServiceCategory,
+} from "@/data/hooks/serviceCategorie/useServiceCategorieMutation";
 
 export function useServiceCategoryPage() {
-
-  //#region Hooks useStates
-
+  // ======================
+  // State
+  // ======================
   const [name, setName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
-  const [editingCategory, setEditingCategory] = useState<ServiceCategorie | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [search, setSearch] = useState("");
+  const [editingCategory, setEditingCategory] =
+    useState<ServiceCategorie | null>(null);
 
- //#endregion
- 
-  //#region Hooks Personalizados
-  const { data: categories = [], isLoading, isError, refetch } = useServiceCategorieAll(search);
-  //#endregion
+  // ======================
+  // Query
+  // ======================
+  const {
+    data: categories = [],
+    isLoading,
+    isError,
+  } = useServiceCategorieAll(search);
 
-  //#region Methods
-  const addCategory = async () => {
-    if (!name.trim() || isCreating) return;
+  // ======================
+  // Mutations
+  // ======================
+  const createCategory = useCreateServiceCategory();
+  const updateCategory = useUpdateServiceCategory();
+  const deleteCategory = useDeleteServiceCategory();
 
-    try {
-      setIsCreating(true);
-      await serviceCategorieRepository.createServiceCategorie({ name });
-      setName("");
-      refetch();
-    } catch (error) {
+  // ======================
+  // Create
+  // ======================
+  const addCategory = () => {
+    if (!name.trim() || createCategory.isPending) return;
 
-    } finally {
-      setIsCreating(false);
-    }
+    createCategory.mutate(
+      { name },
+      {
+        onSuccess: () => setName(""),
+      }
+    );
   };
 
-    const deleteCategory = async (id: number) => {
-    if (isDeleting !== null) return;
-
-    try {
-      setIsDeleting(id);
-      await serviceCategorieRepository.deleteServiceCategorie(id);
-      refetch();
-    } catch (error) {
-      console.error("Error al eliminar la categoría", error);
-    } finally {
-      setIsDeleting(null);
-    }
+  // ======================
+  // Delete
+  // ======================
+  const removeCategory = (id: number) => {
+    if (deleteCategory.isPending) return;
+    deleteCategory.mutate(id);
   };
 
-    const openEditModal = (category: ServiceCategorie) => {
+  // ======================
+  // Edit
+  // ======================
+  const openEditModal = (category: ServiceCategorie) => {
     setEditingCategory(category);
   };
 
-    const updateCategory = async () => {
-    if (!editingCategory || isUpdating) return;
+  const saveCategory = () => {
+    if (!editingCategory || updateCategory.isPending) return;
 
-    try {
-      setIsUpdating(true);
-      await serviceCategorieRepository.updateServiceCategorie(editingCategory);
-      setEditingCategory(null);
-      refetch();
-    } catch (error) {
-      console.error("Error al actualizar la categoría", error);
-    } finally {
-      setIsUpdating(false);
-    }
+    updateCategory.mutate(editingCategory, {
+      onSuccess: () => setEditingCategory(null),
+    });
   };
-  //#endregion
-  
-  //#region  Return
 
-    return {
+  return {
     // crear
     name,
     setName,
-    isCreating,
     addCategory,
+    isCreating: createCategory.isPending,
 
     // listar
     categories,
     isLoading,
     isError,
 
-    // eliminar
-    deleteCategory,
-    isDeleting,
-
-    // 👇 search
+    // buscar
     search,
     setSearch,
 
@@ -98,10 +91,11 @@ export function useServiceCategoryPage() {
     editingCategory,
     setEditingCategory,
     openEditModal,
-    updateCategory,
-    isUpdating,
+    saveCategory,
+    isUpdating: updateCategory.isPending,
+
+    // eliminar
+    removeCategory,
+    isDeleting: deleteCategory.isPending,
   };
-
-  //#endregion
-
 }

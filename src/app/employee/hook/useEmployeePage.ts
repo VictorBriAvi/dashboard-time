@@ -3,89 +3,88 @@
 import { useState } from "react";
 import { Employee } from "@/core/models/employee/employee";
 import { useEmployeeAll } from "@/data/hooks/employee/useEmployeeSearch";
-import { employeeRepository } from "@/data/repositories/employeeRepository";
+import {
+  useCreateEmployee,
+  useUpdateEmployee,
+  useDeleteEmployee,
+} from "@/data/hooks/employee/useEmployeeMutations";
 
 export function useEmployeePage() {
+  // ======================
   // Crear
+  // ======================
   const [name, setName] = useState("");
   const [identityDocument, setIdentityDocument] = useState("");
   const [paymentPercentage, setPaymentPercentage] = useState("");
   const [dateBirth, setDateBirth] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
 
-  // Listar / buscar
+  // ======================
+  // Buscar
+  // ======================
   const [search, setSearch] = useState("");
 
+  // ======================
   // Editar
+  // ======================
   const [editingEmployee, setEditingEmployee] =
     useState<Employee | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Eliminar
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  // ======================
+  // Query
+  // ======================
+  const { data: employees = [] } = useEmployeeAll(search);
 
-  const { data: employees = [], refetch } = useEmployeeAll(search);
+  // ======================
+  // Mutations
+  // ======================
+  const createEmployee = useCreateEmployee();
+  const updateEmployee = useUpdateEmployee();
+  const deleteEmployee = useDeleteEmployee();
 
+  // ======================
   // Crear
+  // ======================
   const addEmployee = async () => {
     if (
       !name.trim() ||
       !identityDocument.trim() ||
       !paymentPercentage ||
-      !dateBirth ||
-      isCreating
+      !dateBirth
     )
       return;
 
-    try {
-      setIsCreating(true);
-      await employeeRepository.createEmployee({
-        name,
-        identityDocument,
-        paymentPercentage: Number(paymentPercentage),
-        dateBirth,
-      });
+    await createEmployee.mutateAsync({
+      name,
+      identityDocument,
+      paymentPercentage: Number(paymentPercentage),
+      dateBirth,
+    });
 
-      setName("");
-      setIdentityDocument("");
-      setPaymentPercentage("");
-      setDateBirth("");
-
-      refetch();
-    } finally {
-      setIsCreating(false);
-    }
+    setName("");
+    setIdentityDocument("");
+    setPaymentPercentage("");
+    setDateBirth("");
   };
 
+  // ======================
   // Eliminar
-  const deleteEmployee = async (id: number) => {
-    if (isDeleting !== null) return;
-
-    try {
-      setIsDeleting(id);
-      await employeeRepository.deteEmployee(id);
-      refetch();
-    } finally {
-      setIsDeleting(null);
-    }
+  // ======================
+  const removeEmployee = async (id: number) => {
+    await deleteEmployee.mutateAsync(id);
   };
 
+  // ======================
   // Editar
+  // ======================
   const openEditModal = (employee: Employee) => {
     setEditingEmployee(employee);
   };
 
-  const updateEmployee = async () => {
-    if (!editingEmployee || isUpdating) return;
+  const updateEmployeeData = async () => {
+    if (!editingEmployee) return;
 
-    try {
-      setIsUpdating(true);
-      await employeeRepository.updateEmployee(editingEmployee);
-      setEditingEmployee(null);
-      refetch();
-    } finally {
-      setIsUpdating(false);
-    }
+    await updateEmployee.mutateAsync(editingEmployee);
+    setEditingEmployee(null);
   };
 
   return {
@@ -99,7 +98,7 @@ export function useEmployeePage() {
     dateBirth,
     setDateBirth,
     addEmployee,
-    isCreating,
+    isCreating: createEmployee.isPending,
 
     // listar
     employees,
@@ -112,11 +111,11 @@ export function useEmployeePage() {
     editingEmployee,
     setEditingEmployee,
     openEditModal,
-    updateEmployee,
-    isUpdating,
+    updateEmployee: updateEmployeeData,
+    isUpdating: updateEmployee.isPending,
 
     // eliminar
-    isDeleting,
-    deleteEmployee,
+    removeEmployee,
+    isDeleting: deleteEmployee.isPending,
   };
 }

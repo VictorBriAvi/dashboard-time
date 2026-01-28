@@ -19,6 +19,9 @@ export const useEmployeeAll = (search: string) => {
     queryKey: ["employee", search],
     queryFn: () => employeeRepository.AllEmployee(search),
     staleTime: 1000 * 60 * 5,
+
+    
+    placeholderData: (previousData) => previousData,
   });
 
   return {
@@ -26,7 +29,6 @@ export const useEmployeeAll = (search: string) => {
     isLoading: result.isLoading,
     isError: result.isError,
     error: result.error,
-    refetch: result.refetch,
   };
 };
 

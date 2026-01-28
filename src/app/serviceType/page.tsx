@@ -130,19 +130,16 @@ export default function ServiceTypePage() {
               {
                 id: "delete",
                 variant: "delete",
-                label: (row) =>
-                  servicePage.isDeleting === row.id
-                    ? "Eliminando..."
-                    : "Eliminar",
-                disabled: () => servicePage.isDeleting !== null,
+                label: servicePage.isDeleting ? "Eliminando..." : "Eliminar",
+                disabled: () => servicePage.isDeleting,
                 onClick: (row) => {
-                  const confirmed = window.confirm(
-                    `¿Seguro que deseas eliminar el servicio "${row.name}"?`,
-                  );
-                  if (!confirmed) return;
-                  servicePage.deleteServiceType(row.id);
+                  if (
+                    window.confirm(`¿Seguro que deseas eliminar el servicio "${row.name}"?`)
+                  ) {
+                    servicePage.removeService(row.id);
+                  }
                 },
-              },
+              }
             ]}
           />
         </div>

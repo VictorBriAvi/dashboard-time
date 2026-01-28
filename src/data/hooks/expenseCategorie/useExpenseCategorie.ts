@@ -7,7 +7,7 @@ import { Option } from "@/ui/inputs/SearchSelect";
 
 export const useExpenseCategorieAll = (search: string) => {
   const result = useQuery<ExpenseCategorie[]>({
-    queryKey: ["expense-categories", search],
+    queryKey: ["expenseCategories", search],
     queryFn: () => expenseCategorieRepository.AllExpenseCategorie(search),
     staleTime: 1000 * 60 * 5,
   });

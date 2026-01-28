@@ -21,7 +21,25 @@ export const expenseAllMapper = {
       expensesDateStr: dto.expensesDateStr, 
       expenseTypeId: dto.expenseTypeId,
       nameExpenseType: dto.nameExpenseType,
+      paymentTypeId: dto.paymentTypeId,
+      paymentTypeName: dto.paymentTypeName,
+
     }));
   },
 };
 
+
+// export const expenseEditMapper = {
+//   toDto(expense: Expense): ExpenseDTO {
+//     const [day, month, year] = expense.expensesDateStr.split("-");
+
+//     return {
+//       id: expense.id,
+//       description: expense.description,
+//       price: expense.price,
+//       expenseTypeId: expense.expenseTypeId,
+//       expensesDateStr: 
+//       paymentTypeId: expense.paymentTypeId // ✅ ISO válido
+//     };
+//   },
+// };

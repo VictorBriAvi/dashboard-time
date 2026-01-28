@@ -69,39 +69,38 @@ export default function ServiceCategoryPage() {
               {
                 id: "delete",
                 variant: "delete",
-                label: (row) =>
-                  categoryPage.isDeleting === row.id
-                    ? "Eliminando..."
-                    : "Eliminar",
-                disabled: () => categoryPage.isDeleting !== null,
+                label: categoryPage.isDeleting ? "Eliminando..." : "Eliminar",
+                disabled: () => categoryPage.isDeleting,
                 onClick: (row) => {
-                  const confirmed = window.confirm(
-                    `¿Seguro que deseas eliminar la categoría "${row.name}"?`,
-                  );
-
-                  if (!confirmed) return;
-
-                  categoryPage.deleteCategory(row.id);
+                  if (
+                    window.confirm(
+                      `¿Seguro que deseas eliminar la categoría "${row.name}"?`
+                    )
+                  ) {
+                    categoryPage.removeCategory(row.id);
+                  }
                 },
-              },
+              }
+              ,
             ]}
           />
         </div>
       </div>
       {/* Modal editar categoría */}
       {categoryPage.editingCategory && (
-        <EditServiceCategoryModal
-          category={categoryPage.editingCategory}
-          isUpdating={categoryPage.isUpdating}
-          onChangeName={(value) =>
-            categoryPage.setEditingCategory({
-              ...categoryPage.editingCategory!,
-              name: value,
-            })
-          }
-          onClose={() => categoryPage.setEditingCategory(null)}
-          onSave={categoryPage.updateCategory}
-        />
+      <EditServiceCategoryModal
+        category={categoryPage.editingCategory}
+        isUpdating={categoryPage.isUpdating}
+        onChangeName={(value) =>
+          categoryPage.setEditingCategory({
+            ...categoryPage.editingCategory!,
+            name: value,
+          })
+        }
+        onClose={() => categoryPage.setEditingCategory(null)}
+        onSave={categoryPage.saveCategory}
+      />
+
       )}
     </section>
   );

@@ -1,62 +1,59 @@
 "use client";
 
 import { useState } from "react";
-import { usePaymentTypeAll } from "@/data/hooks/paymentType/usePaymentType";
-import { paymentTypeRepository } from "@/data/repositories/paymentTypeRepository";
 import { PaymentType } from "@/core/models/paymentType/PaymentType";
-
+import { usePaymentTypeAll } from "@/data/hooks/paymentType/usePaymentType";
+import {
+  useCreatePaymentType,
+  useUpdatePaymentType,
+  useDeletePaymentType,
+} from "@/data/hooks/paymentType/usePaymentTypeMutation";
 
 export function usePaymentTypePage() {
   // ======================
   // States
   // ======================
   const [name, setName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
   const [editingPaymentType, setEditingPaymentType] =
     useState<PaymentType | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [search, setSearch] = useState("");
 
   // ======================
-  // Data
+  // Query
   // ======================
   const {
     data: paymentTypes = [],
     isLoading,
     isError,
-    refetch,
   } = usePaymentTypeAll(search);
+
+  // ======================
+  // Mutations
+  // ======================
+  const createPaymentType = useCreatePaymentType();
+  const updatePaymentType = useUpdatePaymentType();
+  const deletePaymentType = useDeletePaymentType();
 
   // ======================
   // Create
   // ======================
-  const addPaymentType = async () => {
-    if (!name.trim() || isCreating) return;
+  const addPaymentType = () => {
+    if (!name.trim() || createPaymentType.isPending) return;
 
-    try {
-      setIsCreating(true);
-      await paymentTypeRepository.createPaymentType({ name });
-      setName("");
-      refetch();
-    } finally {
-      setIsCreating(false);
-    }
+    createPaymentType.mutate(
+      { name },
+      {
+        onSuccess: () => setName(""),
+      }
+    );
   };
 
   // ======================
   // Delete
   // ======================
-  const deletePaymentType = async (id: number) => {
-    if (isDeleting !== null) return;
-
-    try {
-      setIsDeleting(id);
-      await paymentTypeRepository.deletePaymentType(id);
-      refetch();
-    } finally {
-      setIsDeleting(null);
-    }
+  const removePaymentType = (id: number) => {
+    if (deletePaymentType.isPending) return;
+    deletePaymentType.mutate(id);
   };
 
   // ======================
@@ -66,34 +63,25 @@ export function usePaymentTypePage() {
     setEditingPaymentType(paymentType);
   };
 
-  const updatePaymentType = async () => {
-    if (!editingPaymentType || isUpdating) return;
+  const savePaymentType = () => {
+    if (!editingPaymentType || updatePaymentType.isPending) return;
 
-    try {
-      setIsUpdating(true);
-      await paymentTypeRepository.updatePaymentType(editingPaymentType);
-      setEditingPaymentType(null);
-      refetch();
-    } finally {
-      setIsUpdating(false);
-    }
+    updatePaymentType.mutate(editingPaymentType, {
+      onSuccess: () => setEditingPaymentType(null),
+    });
   };
 
   return {
     // crear
     name,
     setName,
-    isCreating,
     addPaymentType,
+    isCreating: createPaymentType.isPending,
 
     // listar
     paymentTypes,
     isLoading,
     isError,
-
-    // eliminar
-    isDeleting,
-    deletePaymentType,
 
     // buscar
     search,
@@ -103,7 +91,11 @@ export function usePaymentTypePage() {
     editingPaymentType,
     setEditingPaymentType,
     openEditModal,
-    updatePaymentType,
-    isUpdating,
+    savePaymentType,
+    isUpdating: updatePaymentType.isPending,
+
+    // eliminar
+    removePaymentType,
+    isDeleting: deletePaymentType.isPending,
   };
 }

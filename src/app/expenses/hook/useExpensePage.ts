@@ -2,26 +2,25 @@
 
 import { useState } from "react";
 import { Option } from "@/ui/inputs/SearchSelect";
-import { useQueryClient } from "@tanstack/react-query";
-
 import { Expense } from "@/core/models/expense/expense";
-import { expenseRepository } from "@/data/repositories/expenseRepository";
 import { useExpenseAll } from "@/data/hooks/expense/useExpense";
+import {
+  useCreateExpense,
+  useUpdateExpense,
+  useDeleteExpense,
+} from "@/data/hooks/expense/useExpenseMutation";
 
 export function useExpensePage() {
-  // ======================
-  // Fecha creación
-  // ======================
-  const [expenseDate, setExpenseDate] = useState<string>("");
-
   // ======================
   // Crear
   // ======================
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [expenseDate, setExpenseDate] = useState("");
   const [expenseTypeSelected, setExpenseTypeSelected] =
     useState<Option | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [paymentTypeSelected, setPaymentTypeSelected] =
+    useState<Option | null>(null);
 
   // ======================
   // Filtros
@@ -29,84 +28,78 @@ export function useExpensePage() {
   const [search, setSearch] = useState("");
   const [expenseTypeFilter, setExpenseTypeFilter] =
     useState<Option | null>(null);
-
-const [fromDate, setFromDate] = useState<string>("");
-const [toDate, setToDate] = useState<string>("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   // ======================
   // Editar
   // ======================
-  const [editingExpense, setEditingExpense] =
-    useState<Expense | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [editDescription, setEditDescription] = useState("");
+  const [editExpenseDate, setEditExpenseDate] = useState("");
   const [editPrice, setEditPrice] = useState("");
-  const [editExpenseType, setEditExpenseType] =
-    useState<Option | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [editExpenseType, setEditExpenseType] = useState<Option | null>(null);
+  const [editPaymentType, setEditPaymentType] = useState<Option | null>(null);
 
   // ======================
-  // Eliminar
+  // Queries
   // ======================
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
-
-  const queryClient = useQueryClient();
-
-  const {
-    data: expenses = [],
-    isLoading,
-    isError,
-    refetch,
-  } = useExpenseAll(
-  search,
-  expenseTypeFilter?.value,
-  fromDate || undefined,
-  toDate || undefined
+  const { data: expenses = [], isLoading, isError } = useExpenseAll(
+    search,
+    expenseTypeFilter?.value,
+    fromDate || undefined,
+    toDate || undefined
   );
 
-// ======================
-// Crear
-// ======================
-const normalizePrice = (value: string) =>
-  value.replace(/\./g, "").replace(",", ".");
+  // ======================
+  // Mutations
+  // ======================
+  const createExpense = useCreateExpense();
+  const updateExpense = useUpdateExpense();
+  const deleteExpense = useDeleteExpense();
 
-const addExpense = async () => {
-  if (
-    !description.trim() ||
-    !price ||
-    !expenseTypeSelected ||
-    !expenseDate ||
-    isCreating
-  )
-    return;
+  // ======================
+  // Helpers
+  // ======================
+  const normalizePrice = (value: string) =>
+    value.replace(/\./g, "").replace(",", ".");
 
-  const normalizedPrice = normalizePrice(price);
-  const parsedPrice = Number(normalizedPrice);
+  // ======================
+  // Crear
+  // ======================
+  const addExpense = () => {
+    if (
+      !description.trim() ||
+      !price ||
+      !expenseTypeSelected ||
+      !paymentTypeSelected ||
+      !expenseDate ||
+      createExpense.isPending
+    )
+      return;
 
-  if (isNaN(parsedPrice) || parsedPrice <= 0) return;
+    const parsedPrice = Number(normalizePrice(price));
+    if (isNaN(parsedPrice) || parsedPrice <= 0) return;
 
-  try {
-    setIsCreating(true);
-
-    await expenseRepository.createExpense({
-      description,
-      price: parsedPrice,
-      expenseTypeId: expenseTypeSelected.value,
-      expenseDate,
-    });
-
-    queryClient.invalidateQueries({ queryKey: ["expenses"] });
-
-    setDescription("");
-    setPrice("");
-    setExpenseTypeSelected(null);
-    setExpenseDate("");
-
-    refetch();
-  } finally {
-    setIsCreating(false);
-  }
-};
-
+    createExpense.mutate(
+      {
+        description,
+        price: parsedPrice,
+        expenseTypeId: expenseTypeSelected.value,
+        paymentTypeId: paymentTypeSelected.value,
+        expenseDate,
+      },
+      {
+        onSuccess: () => {
+          setDescription("");
+          setPrice("");
+          setExpenseTypeSelected(null);
+          setPaymentTypeSelected(null);
+          setExpenseDate("");
+        },
+      }
+    );
+  };
 
   // ======================
   // Editar
@@ -114,60 +107,62 @@ const addExpense = async () => {
   const openEditModal = (expense: Expense) => {
     setEditingExpense(expense);
     setEditDescription(expense.description);
+
+    const [day, month, year] = expense.expensesDateStr.split("-");
+    setEditExpenseDate(`${year}-${month}-${day}`);
+
     setEditPrice(String(expense.price));
     setEditExpenseType({
       value: expense.expenseTypeId,
       label: expense.nameExpenseType,
     });
+    setEditPaymentType({
+      value: expense.paymentTypeId,
+      label: expense.paymentTypeName,
+    });
   };
 
-  const saveEditExpense = async () => {
-    if (!editingExpense || !editExpenseType) return;
+  const saveEditExpense = () => {
+    if (
+      !editingExpense ||
+      !editExpenseType ||
+      !editPaymentType ||
+      updateExpense.isPending
+    )
+      return;
 
-    try {
-      setIsUpdating(true);
-
-      await expenseRepository.updateExpense({
+    updateExpense.mutate(
+      {
         id: editingExpense.id,
         description: editDescription.trim(),
         price: Number(editPrice),
         expenseTypeId: editExpenseType.value,
-      });
-
-      setEditingExpense(null);
-      refetch();
-    } finally {
-      setIsUpdating(false);
-    }
+        paymentTypeId: editPaymentType.value,
+        expenseDate: editExpenseDate,
+      },
+      {
+        onSuccess: () => setEditingExpense(null),
+      }
+    );
   };
 
   // ======================
   // Eliminar
   // ======================
-  const deleteExpense = async (id: number) => {
-    if (isDeleting !== null) return;
-
-    try {
-      setIsDeleting(id);
-      await expenseRepository.deleteExpense(id);
-      refetch();
-    } finally {
-      setIsDeleting(null);
-    }
+  const removeExpense = (id: number) => {
+    if (deleteExpense.isPending) return;
+    deleteExpense.mutate(id);
   };
 
   // ======================
-// Limpiar filtros
-// ======================
-const clearFilters = () => {
-  setSearch("");
-  setExpenseTypeFilter(null);
-  setFromDate("");
-  setToDate("");
-
-  refetch();
-};
-
+  // Filtros
+  // ======================
+  const clearFilters = () => {
+    setSearch("");
+    setExpenseTypeFilter(null);
+    setFromDate("");
+    setToDate("");
+  };
 
   return {
     // crear
@@ -175,22 +170,26 @@ const clearFilters = () => {
     setDescription,
     price,
     setPrice,
-    expenseTypeSelected,
-    setExpenseTypeSelected,
     expenseDate,
     setExpenseDate,
+    expenseTypeSelected,
+    setExpenseTypeSelected,
+    paymentTypeSelected,
+    setPaymentTypeSelected,
     addExpense,
-    isCreating,
+    isCreating: createExpense.isPending,
 
     // filtros
-      search,
-      setSearch,
-      expenseTypeFilter,
-      setExpenseTypeFilter,
-      fromDate,
-      setFromDate,
-      toDate,
-      setToDate,
+    search,
+    setSearch,
+    expenseTypeFilter,
+    setExpenseTypeFilter,
+    fromDate,
+    setFromDate,
+    toDate,
+    setToDate,
+    clearFilters,
+
     // listar
     expenses,
     isLoading,
@@ -202,17 +201,19 @@ const clearFilters = () => {
     openEditModal,
     editDescription,
     setEditDescription,
+    editExpenseDate,
+    setEditExpenseDate,
     editPrice,
     setEditPrice,
     editExpenseType,
     setEditExpenseType,
-    isUpdating,
+    editPaymentType,
+    setEditPaymentType,
     saveEditExpense,
+    isUpdating: updateExpense.isPending,
 
     // eliminar
-    isDeleting,
-    deleteExpense,
-
-    clearFilters
+    removeExpense,
+    isDeleting: deleteExpense.isPending,
   };
 }

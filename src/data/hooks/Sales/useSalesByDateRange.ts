@@ -11,6 +11,8 @@ export const useSalesByDateRange = (fromDate: string, toDate: string) => {
     queryFn: () => saleRepository.getSalesByDateRange(fromDate, toDate),
     enabled: !!fromDate && !!toDate,
     staleTime: 1000 * 60 * 5,
+    
+    placeholderData: (previousData) => previousData,
   });
 
   return {

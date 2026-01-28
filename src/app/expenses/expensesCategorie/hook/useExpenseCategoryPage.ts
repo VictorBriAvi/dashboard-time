@@ -1,95 +1,96 @@
 "use client";
 
 import { useState } from "react";
-import { useExpenseCategorieAll } from "@/data/hooks/expenseCategorie/useExpenseCategorie";
-import { expenseCategorieRepository } from "@/data/repositories/expenseCategorieRepository";
 import type { ExpenseCategorie } from "@/core/models/expenseCategorie/expenseCategorie";
+import { useExpenseCategorieAll } from "@/data/hooks/expenseCategorie/useExpenseCategorie";
+import {
+  useCreateExpenseCategory,
+  useDeleteExpenseCategory,
+  useUpdateExpenseCategory,
+} from "@/data/hooks/expenseCategorie/useExpenseCategoryMutation";
 
 export function useExpenseCategoryPage() {
-
-  //#region States
+  // ======================
+  // Form / búsqueda
+  // ======================
   const [name, setName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
-  const [editingCategory, setEditingCategory] = useState<ExpenseCategorie | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [search, setSearch] = useState("");
-  //#endregion
 
-  //#region Data
-  const { data: categories = [], isLoading, isError, refetch } =
+  // ======================
+  // Editar
+  // ======================
+  const [editingCategory, setEditingCategory] =
+    useState<ExpenseCategorie | null>(null);
+
+  // ======================
+  // Queries
+  // ======================
+  const { data: categories = [], isLoading, isError } =
     useExpenseCategorieAll(search);
-  //#endregion
 
-  //#region Methods
-  const addCategory = async () => {
-    if (!name.trim() || isCreating) return;
+  // ======================
+  // Mutations
+  // ======================
+  const createCategory = useCreateExpenseCategory();
+  const updateCategory = useUpdateExpenseCategory();
+  const deleteCategory = useDeleteExpenseCategory();
 
-    try {
-      setIsCreating(true);
-      await expenseCategorieRepository.createExpenseCategorie({ name });
-      setName("");
-      refetch();
-    } finally {
-      setIsCreating(false);
-    }
+  // ======================
+  // Actions
+  // ======================
+  const addCategory = () => {
+    if (!name.trim() || createCategory.isPending) return;
+
+    createCategory.mutate(
+      { name },
+      {
+        onSuccess: () => setName(""),
+      }
+    );
   };
 
-  const deleteCategory = async (id: number) => {
-    if (isDeleting !== null) return;
-
-    try {
-      setIsDeleting(id);
-      await expenseCategorieRepository.deleteExpenseCategorie(id);
-      refetch();
-    } finally {
-      setIsDeleting(null);
-    }
+  const removeCategory = (id: number) => {
+    if (deleteCategory.isPending) return;
+    deleteCategory.mutate(id);
   };
 
   const openEditModal = (category: ExpenseCategorie) => {
     setEditingCategory(category);
   };
 
-  const updateCategory = async () => {
-    if (!editingCategory || isUpdating) return;
+  const saveEditCategory = () => {
+    if (!editingCategory || updateCategory.isPending) return;
 
-    try {
-      setIsUpdating(true);
-      await expenseCategorieRepository.updateExpenseCategorie(editingCategory);
-      setEditingCategory(null);
-      refetch();
-    } finally {
-      setIsUpdating(false);
-    }
+    updateCategory.mutate(editingCategory, {
+      onSuccess: () => setEditingCategory(null),
+    });
   };
-  //#endregion
 
   return {
     // crear
     name,
     setName,
-    isCreating,
     addCategory,
+    isCreating: createCategory.isPending,
 
     // listar
     categories,
     isLoading,
     isError,
 
-    // eliminar
-    deleteCategory,
-    isDeleting,
-
     // buscar
     search,
     setSearch,
+
+    // eliminar
+    removeCategory,
+    isDeleting: deleteCategory.isPending,
 
     // editar
     editingCategory,
     setEditingCategory,
     openEditModal,
-    updateCategory,
-    isUpdating,
+    saveEditCategory,
+    isUpdating: updateCategory.isPending,
   };
 }

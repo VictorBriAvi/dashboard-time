@@ -16,9 +16,11 @@ export const usePaymentTypeSearch = () => {
 
 export const usePaymentTypeAll = (search: string) => {
   const result = useQuery<PaymentType[]>({
-    queryKey: ["payment - type", search],
+    queryKey: ["paymentType", search],
     queryFn: () => paymentTypeRepository.AllPaymentType(search),
     staleTime: 1000 * 60 * 5,
+    
+    placeholderData: (previousData) => previousData,
   });
 
   return {
@@ -26,7 +28,7 @@ export const usePaymentTypeAll = (search: string) => {
     isLoading: result.isLoading,
     isError: result.isError,
     error: result.error,
-    refetch: result.refetch,
+
   };
 };
 

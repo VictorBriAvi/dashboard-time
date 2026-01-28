@@ -5,14 +5,19 @@ import { AsyncSearchableSelect, Option } from "@/ui/inputs/SearchSelect";
 
 type Props = {
   expenseType: Option | null;
+  paymentType: Option | null;
   description: string;
+  expenseDate: string;
   price: string;
   isUpdating: boolean;
 
   loadExpenseTypes: (input: string) => Promise<Option[]>;
+  loadPaymentTypes: (input: string) => Promise<Option[]>;
 
   onChangeExpenseType: (option: Option | null) => void;
+  onChangePaymentType: (option: Option | null) => void;
   onChangeDescription: (value: string) => void;
+  onChangeExpenseDate: (value: string) => void;
   onChangePrice: (value: string) => void;
 
   onClose: () => void;
@@ -23,12 +28,17 @@ type Props = {
 
 export function EditExpenseModal({
   expenseType,
+  paymentType,
   description,
+  expenseDate,
   price,
   isUpdating,
   loadExpenseTypes,
+  loadPaymentTypes,
   onChangeExpenseType,
+  onChangePaymentType,
   onChangeDescription,
+  onChangeExpenseDate,
   onChangePrice,
   onClose,
   onSave,
@@ -45,6 +55,12 @@ export function EditExpenseModal({
           value={expenseType}
           onChange={onChangeExpenseType}
         />
+        <AsyncSearchableSelect
+          label="Tipo de pago"
+          loadOptions={loadPaymentTypes}
+          value={paymentType}
+          onChange={onChangePaymentType}
+        />
 
         <Input
           label="Descripción"
@@ -59,6 +75,13 @@ export function EditExpenseModal({
           onChange={onChangePrice}
           disabled={isUpdating}
         />
+
+          <Input
+            type="date"
+            label="Fecha del gasto"
+            value={expenseDate}
+            onChange={onChangeExpenseDate}
+          />
 
         <div className="flex justify-end gap-2 pt-4">
           <button

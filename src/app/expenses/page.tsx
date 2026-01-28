@@ -10,11 +10,16 @@ import { Expense } from "@/core/models/expense/expense";
 import { useExpensePage } from "@/app/expenses/hook/useExpensePage";
 import { useExpenseCategorieSearch } from "@/data/hooks/expenseCategorie/useExpenseCategorie";
 import { EditExpenseModal } from "./modal/EditExpenseModal";
+import { usePaymentTypeSearch } from "@/data/hooks/paymentType/usePaymentType";
+import PaymentTypePage from "../paymentType/page";
 
 export default function ExpensePage() {
   const expensePage = useExpensePage();
-  const { loadExpenseCategories } = useExpenseCategorieSearch();
+  const { loadExpenseCategories } = useExpenseCategorieSearch(); 
+  const {loadPaymentType} = usePaymentTypeSearch();
 
+
+  
   const columns: ColumnDef<Expense>[] = [
     {
       header: "Fecha",
@@ -29,6 +34,10 @@ export default function ExpensePage() {
     {
       header: "Tipo de gasto",
       accessorKey: "nameExpenseType",
+    },
+    {
+      header: "Tipo de pago",
+      accessorKey: "paymentTypeName",
     },
   ];
 
@@ -60,6 +69,13 @@ export default function ExpensePage() {
             loadOptions={loadExpenseCategories}
             value={expensePage.expenseTypeSelected}
             onChange={expensePage.setExpenseTypeSelected}
+          />
+
+          <AsyncSearchableSelect
+            label="Tipo de pago"
+            loadOptions={loadPaymentType}
+            value={expensePage.paymentTypeSelected}
+            onChange={expensePage.setPaymentTypeSelected}
           />
 
           {/* ✅ FECHA DEL GASTO */}
@@ -141,20 +157,19 @@ export default function ExpensePage() {
               {
                 id: "delete",
                 variant: "delete",
-                label: (row) =>
-                  expensePage.isDeleting === row.id
-                    ? "Eliminando..."
-                    : "Eliminar",
-                disabled: () => expensePage.isDeleting !== null,
+                label: expensePage.isDeleting ? "Eliminando..." : "Eliminar",
+                disabled: () => expensePage.isDeleting,
                 onClick: (row) => {
-                  const confirmed = window.confirm(
-                    `¿Seguro que deseas eliminar el gasto "${row.description}"?`
-                  );
-                  if (!confirmed) return;
-
-                  expensePage.deleteExpense(row.id);
+                  if (
+                    window.confirm(
+                      `¿Seguro que deseas eliminar el gasto "${row.description}"?`
+                    )
+                  ) {
+                    expensePage.removeExpense(row.id);
+                  }
                 },
-              },
+              }
+
             ]}
           />
         </div>
@@ -166,12 +181,17 @@ export default function ExpensePage() {
       {expensePage.editingExpense && (
         <EditExpenseModal
           expenseType={expensePage.editExpenseType}
+          paymentType={expensePage.editPaymentType}
           description={expensePage.editDescription}
+          expenseDate={expensePage.editExpenseDate}
           price={expensePage.editPrice}
           isUpdating={expensePage.isUpdating}
           loadExpenseTypes={loadExpenseCategories}
+          loadPaymentTypes={loadPaymentType}
           onChangeExpenseType={expensePage.setEditExpenseType}
+          onChangePaymentType={expensePage.setEditPaymentType}
           onChangeDescription={expensePage.setEditDescription}
+          onChangeExpenseDate={expensePage.setEditExpenseDate}
           onChangePrice={expensePage.setEditPrice}
           onSave={expensePage.saveEditExpense}
           onClose={() => expensePage.setEditingExpense(null)}

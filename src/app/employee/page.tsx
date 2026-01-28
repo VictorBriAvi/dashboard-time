@@ -77,37 +77,35 @@ export default function EmployeePage() {
             placeholder="Ej: Juan"
           />
 
-          <GenericDataTable<Employee>
-            data={employeePage.employees}
-            columns={columns}
-            rowKey={(row) => row.id}
-            rowActions={[
-              {
-                id: "edit",
-                label: "Editar",
-                variant: "edit",
-                onClick: employeePage.openEditModal,
-              },
-              {
-                id: "delete",
-                label: (row) =>
-                  employeePage.isDeleting === row.id
-                    ? "Eliminando..."
-                    : "Eliminar",
-                variant: "delete",
-                disabled: () => employeePage.isDeleting !== null,
-                onClick: (row) => {
-                  if (
-                    window.confirm(
-                      `¿Seguro que deseas eliminar al empleado "${row.name}"?`
-                    )
-                  ) {
-                    employeePage.deleteEmployee(row.id);
-                  }
-                },
-              },
-            ]}
-          />
+<GenericDataTable<Employee>
+  data={employeePage.employees}
+  columns={columns}
+  rowKey={(row) => row.id}
+  rowActions={[
+    {
+      id: "edit",
+      label: "Editar",
+      variant: "edit",
+      onClick: employeePage.openEditModal,
+    },
+    {
+      id: "delete",
+      label: employeePage.isDeleting ? "Eliminando..." : "Eliminar",
+      variant: "delete",
+      disabled: () => employeePage.isDeleting,
+      onClick: (row) => {
+        if (
+          window.confirm(
+            `¿Seguro que deseas eliminar al empleado "${row.name}"?`
+          )
+        ) {
+          employeePage.removeEmployee(row.id);
+        }
+      },
+    },
+  ]}
+/>
+
         </div>
       </div>
 
