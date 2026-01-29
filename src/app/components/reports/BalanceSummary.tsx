@@ -21,43 +21,55 @@ import SummaryCard from "@/ui/statistics/SummaryCard";
 
 type RangeType = "day" | "week" | "month" | "year" | "custom";
 
+const formatLocalDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+
 // 🔹 Helper para calcular fechas (se mueve fuera o se mantiene dentro)
 const getRangeDates = (type: RangeType) => {
   const today = new Date();
-  const toDate = today.toISOString().split("T")[0];
+  const toDate = formatLocalDate(today);
   let fromDate = toDate;
 
   const prev = new Date(today);
 
   switch (type) {
     case "week":
-      // Restar 7 días o ir al lunes (ajustar según preferencia)
       prev.setDate(today.getDate() - 7);
-      fromDate = prev.toISOString().split("T")[0];
+      fromDate = formatLocalDate(prev);
       break;
+
     case "month":
-      // Primer día del mes actual
-      const firstDayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      fromDate = firstDayMonth.toISOString().split("T")[0];
+      fromDate = formatLocalDate(
+        new Date(today.getFullYear(), today.getMonth(), 1)
+      );
       break;
+
     case "year":
-      // Primer día del año actual
-      const firstDayYear = new Date(today.getFullYear(), 0, 1);
-      fromDate = firstDayYear.toISOString().split("T")[0];
+      fromDate = formatLocalDate(
+        new Date(today.getFullYear(), 0, 1)
+      );
       break;
+
     case "day":
     default:
       fromDate = toDate;
       break;
   }
+
   return { fromDate, toDate };
 };
 
+
 export default function BalanceSummary() {
   // 1. Inicialización de fechas (por defecto Mensual)
-  const initialRange = getRangeDates("month");
+  const initialRange = getRangeDates("day");
   
-  const [rangeType, setRangeType] = useState<RangeType>("month");
+  const [rangeType, setRangeType] = useState<RangeType>("day");
   const [dateFilter, setDateFilter] = useState({
     from: initialRange.fromDate,
     to: initialRange.toDate,
@@ -69,10 +81,7 @@ export default function BalanceSummary() {
 
   // 🔹 USE SUMMARY: Ahora le pasamos fechas explícitas
   // NOTA: Debes actualizar la definición de este hook para aceptar (from, to)
-  const {
-    data: summary,
-    isLoading: isLoadingCard,
-  } = useSummary(dateFilter.from, dateFilter.to);
+  const { data: summary, isLoading: isLoadingCard } = useSummary(dateFilter.from, dateFilter.to);
 
   // 🔹 LINE CHART
   const {
