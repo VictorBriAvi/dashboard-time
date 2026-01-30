@@ -7,7 +7,7 @@ import type { SaleByDateRange } from "@/core/models/reports/SaleByDateRangeModel
 
 export const useSalesByDateRange = (fromDate: string, toDate: string) => {
   const query = useQuery<SaleByDateRange[]>({
-    queryKey: ["sales-by-date-range", fromDate, toDate],
+    queryKey: ["reports", "sales", "by-date-range", fromDate, toDate],
     queryFn: () => reportRepository.getSalesByDateRange(fromDate, toDate),
     enabled: !!fromDate && !!toDate,
     staleTime: 1000 * 60 * 5,

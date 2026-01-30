@@ -33,16 +33,16 @@ export const useEmployeeAll = (search: string) => {
 };
 
 export function useEmployeeAllSearch() {
-  const loadPaymentType = async (input: string): Promise<Option[]> => {
-    const categories = await employeeRepository.AllEmployee(input);
+  const loadEmployee = async (input: string): Promise<Option[]> => {
+    const employees = await employeeRepository.AllEmployee(input);
 
-    return categories.map((c) => ({
+    return employees.map((c) => ({
       value: c.id,
       label: c.name,
     }));
   };
 
   return {
-    loadPaymentType,
+    loadEmployee,
   };
 }

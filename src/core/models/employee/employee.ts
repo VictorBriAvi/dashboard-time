@@ -20,6 +20,6 @@ export interface EditEmployee {
   name: string;
   identityDocument: string;
   paymentPercentage: number;
-  dateBirth: string; // ISO
+  dateBirth: string;
 }
 

@@ -25,7 +25,6 @@ export const employeeAllMapper = {
   },
 };
 
-
 export const employeeEditMapper = {
   toDto(employee: Employee): EditEmployeeDTO {
     const [day, month, year] = employee.employeeDateBirth.split("-");

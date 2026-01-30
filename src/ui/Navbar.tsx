@@ -77,24 +77,12 @@ export default function Navbar() {
             {/* Clientes */}
             <div className="relative">
               <div className="flex items-center gap-1">
-                <Link href="/clients" className="nav-link">
+                <Link href="/client" className="nav-link">
                   Clientes
                 </Link>
-                <button
-                  onClick={() => toggleSubmenu("clients")}
-                  className="p-1 hover:bg-gray-100 rounded"
-                >
-                  <ChevronDown size={16} />
-                </button>
               </div>
 
-              {openSubmenu === "clients" && (
-                <div className="submenu-premium">
-                  <Link href="/clients/history" className="submenu-btn">
-                    Historial cliente
-                  </Link>
-                </div>
-              )}
+
             </div>
 
             <Link href="/paymentType" className="nav-link">
@@ -137,10 +125,9 @@ export default function Navbar() {
         sub: [{ label: "Categorías", href: "/expenses/expensesCategorie" }],
       },
       {
-        key: "clients",
+        key: "client",
         label: "Clientes",
-        href: "/clients",
-        sub: [{ label: "Historial cliente", href: "/clients/history" }],
+        href: "/client",
       },
       {
         key: "payment-types",
@@ -150,7 +137,7 @@ export default function Navbar() {
       {
         key: "employees",
         label: "Colaboradores",
-        href: "/employees",
+        href: "/employee",
       },
     ].map((item) => (
       <div key={item.key}>
