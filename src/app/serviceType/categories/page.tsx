@@ -26,7 +26,7 @@ export default function ServiceCategoryPage() {
 
       <div className="grid grid-cols-12 gap-6">
         {/* Panel izquierdo */}
-        <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-4">
           <Input
             label="Nombre"
             value={categoryPage.name}
@@ -44,7 +44,7 @@ export default function ServiceCategoryPage() {
         </div>
 
         {/* Panel derecho */}
-        <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl shadow-md p-6">
+        <div className="col-span-12 lg:col-span-9 bg-white rounded-2xl shadow-md p-6">
           <Input
             label="Buscar categoría"
             value={categoryPage.search}

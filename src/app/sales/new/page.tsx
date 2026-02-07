@@ -74,7 +74,7 @@ export default function NewSalePage() {
 
       <div className="grid grid-cols-12 gap-6">
         {/* Panel izquierdo */}
-        <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-4">
           <AsyncSearchableSelect
             label="Cliente"
             loadOptions={loadClients}
@@ -128,7 +128,7 @@ export default function NewSalePage() {
         </div>
 
         {/* Panel derecho */}
-        <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl shadow-md p-6">
+        <div className="col-span-12 lg:col-span-9 bg-white rounded-2xl shadow-md p-6">
           <GenericDataTable<SaleDetailUI>
             data={sale.saleDetailsUI}
             columns={columns}

@@ -25,7 +25,7 @@ export default function ExpenseCategoryPage() {
 
       <div className="grid grid-cols-12 gap-6">
         {/* Crear */}
-        <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-4">
           <Input
             label="Nombre"
             value={categoryPage.name}
@@ -47,7 +47,7 @@ export default function ExpenseCategoryPage() {
         </div>
 
         {/* Listado */}
-        <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl shadow-md p-6">
+        <div className="col-span-12 lg:col-span-9 bg-white rounded-2xl shadow-md p-6">
           <Input
             label="Buscar categoría"
             value={categoryPage.search}

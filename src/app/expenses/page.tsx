@@ -15,11 +15,9 @@ import PaymentTypePage from "../paymentType/page";
 
 export default function ExpensePage() {
   const expensePage = useExpensePage();
-  const { loadExpenseCategories } = useExpenseCategorieSearch(); 
-  const {loadPaymentType} = usePaymentTypeSearch();
+  const { loadExpenseCategories } = useExpenseCategorieSearch();
+  const { loadPaymentType } = usePaymentTypeSearch();
 
-
-  
   const columns: ColumnDef<Expense>[] = [
     {
       header: "Fecha",
@@ -51,7 +49,7 @@ export default function ExpensePage() {
         {/* =====================
             CREAR GASTO
         ====================== */}
-        <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-4">
           <Input
             label="Descripción"
             value={expensePage.description}
@@ -102,7 +100,7 @@ export default function ExpensePage() {
         {/* =====================
             LISTADO + FILTROS
         ====================== */}
-        <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <div className="col-span-12 lg:col-span-9 bg-white rounded-2xl shadow-md p-6 space-y-4">
           <Input
             label="Buscar descripción"
             value={expensePage.search}
@@ -134,7 +132,6 @@ export default function ExpensePage() {
             />
           </div>
 
-
           <button
             onClick={expensePage.clearFilters}
             className="text-sm underline text-gray-500"
@@ -162,14 +159,13 @@ export default function ExpensePage() {
                 onClick: (row) => {
                   if (
                     window.confirm(
-                      `¿Seguro que deseas eliminar el gasto "${row.description}"?`
+                      `¿Seguro que deseas eliminar el gasto "${row.description}"?`,
                     )
                   ) {
                     expensePage.removeExpense(row.id);
                   }
                 },
-              }
-
+              },
             ]}
           />
         </div>

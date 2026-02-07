@@ -28,7 +28,6 @@ const formatLocalDate = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-
 // 🔹 Helper para calcular fechas (se mueve fuera o se mantiene dentro)
 const getRangeDates = (type: RangeType) => {
   const today = new Date();
@@ -45,14 +44,12 @@ const getRangeDates = (type: RangeType) => {
 
     case "month":
       fromDate = formatLocalDate(
-        new Date(today.getFullYear(), today.getMonth(), 1)
+        new Date(today.getFullYear(), today.getMonth(), 1),
       );
       break;
 
     case "year":
-      fromDate = formatLocalDate(
-        new Date(today.getFullYear(), 0, 1)
-      );
+      fromDate = formatLocalDate(new Date(today.getFullYear(), 0, 1));
       break;
 
     case "day":
@@ -64,11 +61,10 @@ const getRangeDates = (type: RangeType) => {
   return { fromDate, toDate };
 };
 
-
 export default function BalanceSummary() {
   // 1. Inicialización de fechas (por defecto Mensual)
   const initialRange = getRangeDates("day");
-  
+
   const [rangeType, setRangeType] = useState<RangeType>("day");
   const [dateFilter, setDateFilter] = useState({
     from: initialRange.fromDate,
@@ -81,22 +77,27 @@ export default function BalanceSummary() {
 
   // 🔹 USE SUMMARY: Ahora le pasamos fechas explícitas
   // NOTA: Debes actualizar la definición de este hook para aceptar (from, to)
-  const { data: summary, isLoading: isLoadingCard } = useSummary(dateFilter.from, dateFilter.to);
+  const { data: summary, isLoading: isLoadingCard } = useSummary(
+    dateFilter.from,
+    dateFilter.to,
+  );
 
   // 🔹 LINE CHART
-  const {
-    data: lineChart,
-    isLoading: isLoadingLineChart,
-  } = useDailySummary({
+  const { data: lineChart, isLoading: isLoadingLineChart } = useDailySummary({
     fromDate: dateFilter.from,
     toDate: dateFilter.to,
   });
 
   // 🔹 RESTO DE REPORTES
-  const { data: barData = [] } = useEmployeeSaleSummary(dateFilter.from, dateFilter.to);
+  const { data: barData = [] } = useEmployeeSaleSummary(
+    dateFilter.from,
+    dateFilter.to,
+  );
 
-  const { data: pieData, isLoading: pieLoading } =
-    useExpenseCategoryReport(dateFilter.from, dateFilter.to);
+  const { data: pieData, isLoading: pieLoading } = useExpenseCategoryReport(
+    dateFilter.from,
+    dateFilter.to,
+  );
 
   const { data: paymentData = [], isLoading: barChart } =
     useSalesSummaryByPayment(dateFilter.from, dateFilter.to);
@@ -190,6 +191,7 @@ export default function BalanceSummary() {
       {/* CARDS */}
       <div className="px-4 sm:px-6 lg:px-8 mb-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* GANANCIA */}
           <SummaryCard
             title={summary?.ganancia.title}
             amount={summary?.ganancia.amount}
@@ -202,28 +204,38 @@ export default function BalanceSummary() {
             loading={isLoadingCard}
           />
 
-          <SummaryCard
-            title={summary?.gastos.title}
-            amount={summary?.gastos.amount}
-            amountColor={summary?.gastos.amountColor}
-            shadowColor={summary?.gastos.shadowColor}
-            leftIcon={<BanknoteArrowDown size={18} className="text-red-600" />}
-            leftLabel={summary?.gastos.leftLabel}
-            rightLabel={summary?.gastos.rightLabel}
-            loading={isLoadingCard}
-          />
+          {/* BLOQUE VENTAS + GASTOS */}
+          <div className="lg:col-span-2 rounded-xl border border-border/60 bg-slate-50/70 dark:bg-slate-800/40 p-3 shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <SummaryCard
+                title={summary?.gastos.title}
+                amount={summary?.gastos.amount}
+                amountColor={summary?.gastos.amountColor}
+                shadowColor={summary?.gastos.shadowColor}
+                leftIcon={
+                  <BanknoteArrowDown size={18} className="text-red-600" />
+                }
+                leftLabel={summary?.gastos.leftLabel}
+                rightLabel={summary?.gastos.rightLabel}
+                loading={isLoadingCard}
+              />
 
-          <SummaryCard
-            title={summary?.ventas.title}
-            amount={summary?.ventas.amount}
-            amountColor={summary?.ventas.amountColor}
-            shadowColor={summary?.ventas.shadowColor}
-            leftIcon={<BanknoteArrowUp size={18} className="text-green-600" />}
-            leftLabel={summary?.ventas.leftLabel}
-            rightLabel={summary?.ventas.rightLabel}
-            loading={isLoadingCard}
-          />
+              <SummaryCard
+                title={summary?.ventas.title}
+                amount={summary?.ventas.amount}
+                amountColor={summary?.ventas.amountColor}
+                shadowColor={summary?.ventas.shadowColor}
+                leftIcon={
+                  <BanknoteArrowUp size={18} className="text-green-600" />
+                }
+                leftLabel={summary?.ventas.leftLabel}
+                rightLabel={summary?.ventas.rightLabel}
+                loading={isLoadingCard}
+              />
+            </div>
+          </div>
 
+          {/* PAGOS COLABORADORES */}
           <SummaryCard
             title={summary?.totalPagosColaboradores.title}
             amount={summary?.totalPagosColaboradores.amount}

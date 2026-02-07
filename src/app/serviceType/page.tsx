@@ -42,7 +42,7 @@ export default function ServiceTypePage() {
         {/* ======================
             Panel izquierdo (crear + filtrar por categoría)
         ====================== */}
-        <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-4">
           <AsyncSearchableSelect
             label="Categoría"
             loadOptions={loadServiceCategories}
@@ -83,7 +83,7 @@ export default function ServiceTypePage() {
         {/* ======================
             Panel derecho (listar + buscar por nombre)
         ====================== */}
-        <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <div className="col-span-12 lg:col-span-9 bg-white rounded-2xl shadow-md p-6 space-y-4">
           <Input
             label="Buscar servicio"
             value={servicePage.search}

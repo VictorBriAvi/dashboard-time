@@ -5,18 +5,18 @@ import { useEffect, useState } from "react";
 export interface Option {
   value: number;
   label: string;
-  // name: string;
 }
 
 interface AsyncSearchableSelectProps {
+  id?: string;
   label: string;
   loadOptions: (input: string) => Promise<Option[]>;
   value?: Option | null;
   onChange?: (option: Option | null) => void;
 }
 
-
 export function AsyncSearchableSelect({
+  id,
   label,
   loadOptions,
   value,
@@ -28,17 +28,16 @@ export function AsyncSearchableSelect({
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  /** 🔄 sincroniza valor externo */
-useEffect(() => {
-  if (value) {
-    setInput(value.label);
-  } else {
-    setInput("");
-    setOptions([]);
-    setHighlightedIndex(-1);
-  }
-}, [value]);
-
+  /** 🔄 Sync valor externo */
+  useEffect(() => {
+    if (value) {
+      setInput(value.label);
+    } else {
+      setInput("");
+      setOptions([]);
+      setHighlightedIndex(-1);
+    }
+  }, [value]);
 
   useEffect(() => {
     if (!input) {
@@ -58,26 +57,31 @@ useEffect(() => {
     fetchOptions();
   }, [input, loadOptions]);
 
-const selectOption = (option: Option) => {
-  setInput(option.label);
-  setOpen(false);
-  onChange?.(option);
-};
-
+  const selectOption = (option: Option) => {
+    setInput(option.label);
+    setOpen(false);
+    onChange?.(option);
+  };
 
   return (
-    <div className="relative space-y-1">
-      <label className="block text-sm font-medium">{label}</label>
+    <div className="relative flex flex-col gap-1.5">
+      <label
+        htmlFor={id}
+        className="text-sm font-semibold text-gray-800"
+      >
+        {label}
+      </label>
 
       <input
+        id={id}
         type="text"
-        className="w-full border rounded-md p-2 text-sm"
-        placeholder="Buscar..."
         value={input}
+        placeholder="Escribí para buscar…"
         onChange={(e) => {
           setInput(e.target.value);
           setOpen(true);
         }}
+        onFocus={() => setOpen(true)}
         onKeyDown={(e) => {
           if (!open) return;
 
@@ -107,18 +111,31 @@ const selectOption = (option: Option) => {
               break;
           }
         }}
+        className="
+          w-full rounded-md border px-3 py-2 text-sm
+          transition-all
+          border-gray-300 text-gray-900
+          placeholder:text-gray-400
+          focus:outline-none
+          focus:border-blue-500
+          focus:ring-2 focus:ring-blue-500/20
+        "
       />
 
       {open && (
-        <div className="absolute z-10 w-full bg-white border rounded-md shadow-md max-h-48 overflow-auto">
+        <div className="
+          absolute top-full z-20 mt-1 w-full
+          rounded-md border bg-white shadow-lg
+          max-h-48 overflow-auto
+        ">
           {loading && (
-            <div className="p-2 text-sm text-gray-500">
-              Buscando...
+            <div className="px-3 py-2 text-sm text-gray-500">
+              Buscando…
             </div>
           )}
 
           {!loading && options.length === 0 && (
-            <div className="p-2 text-sm text-gray-500">
+            <div className="px-3 py-2 text-sm text-gray-500">
               Sin resultados
             </div>
           )}
@@ -127,10 +144,15 @@ const selectOption = (option: Option) => {
             options.map((option, index) => (
               <div
                 key={option.value}
-                className={`p-2 cursor-pointer text-sm
-                  ${index === highlightedIndex
-                    ? "bg-gray-100"
-                    : "hover:bg-gray-100"}`}
+                className={`
+                  px-3 py-2 text-sm cursor-pointer
+                  transition-colors
+                  ${
+                    index === highlightedIndex
+                      ? "bg-blue-50 text-blue-700"
+                      : "hover:bg-gray-100"
+                  }
+                `}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 onClick={() => selectOption(option)}
               >
