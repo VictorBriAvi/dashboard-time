@@ -8,6 +8,7 @@ export const expenseApi = {
 All: async (
   search?: string,
   expenseTypeId?: number,
+  paymentTypeId?: number,
   fromDate?: string,
   toDate?: string
 ): Promise<ExpenseDTO[]> => {
@@ -15,6 +16,7 @@ All: async (
     params: {
       search,
       expenseTypeId,
+      paymentTypeId,
       fromDate,
       toDate,
     },

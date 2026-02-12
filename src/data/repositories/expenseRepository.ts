@@ -6,12 +6,14 @@ export const expenseRepository = {
 All: async (
   search?: string,
   expenseTypeId?: number,
+  paymentTypeId?: number,
   fromDate?: string,
   toDate?: string
 ) => {
   const raw = await expenseApi.All(
     search,
     expenseTypeId,
+    paymentTypeId,
     fromDate,
     toDate
   );

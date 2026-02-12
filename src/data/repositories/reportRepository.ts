@@ -34,9 +34,10 @@ export const reportRepository = {
     return expenseCategoryService.formatForPieChart(rawData);
   },
     getSalesSummaryByPayment: async (startDate: string, endDate: string) => {
-    const raw = await reportApi.getSalesSummaryByPayment(startDate, endDate);
-    return salesByPaymentService.formatForChart(raw);
-  },
+      const raw = await reportApi.getSalesSummaryByPayment(startDate, endDate);
+      return salesByPaymentService.formatForGroupedChart(raw);
+    },
+
 
   getSalesByDateRange: async (fromDate: string, toDate: string) => {
     const raw = await reportApi.getSalesByDateRange(fromDate, toDate);

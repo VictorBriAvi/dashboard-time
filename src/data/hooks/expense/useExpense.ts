@@ -7,12 +7,13 @@ import { expenseRepository } from "@/data/repositories/expenseRepository";
 export const useExpenseAll = (
   search: string,
   expenseTypeId?: number,
+  paymentTypeId?: number,
   fromDate?: string,
   toDate?: string
 ) => {
   const query = useQuery({
-    queryKey: ["expenses", search, expenseTypeId, fromDate, toDate],
-    queryFn: () => expenseRepository.All(search, expenseTypeId, fromDate, toDate),
+    queryKey: ["expenses", search, expenseTypeId, paymentTypeId, fromDate, toDate],
+    queryFn: () => expenseRepository.All(search, expenseTypeId, paymentTypeId, fromDate, toDate),
     staleTime: 1000 * 60 * 5,
 
     placeholderData: (previousData) => previousData,

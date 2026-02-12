@@ -1,18 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
 import { paymentTypeRepository } from "@/data/repositories/paymentTypeRepository";
 import type { Option } from "@/ui/inputs/SearchSelect";
 import { PaymentType } from "@/core/models/paymentType/PaymentType";
 import { useQuery } from "@tanstack/react-query";
-
-export const usePaymentTypeSearch = () => {
-  const loadPaymentType = useCallback(async (input: string): Promise<Option[]> => {
-    return await paymentTypeRepository.searchServiceType(input);
-  }, []);
-
-  return { loadPaymentType };
-};
 
 export const usePaymentTypeAll = (search: string) => {
   const result = useQuery<PaymentType[]>({
@@ -33,7 +24,7 @@ export const usePaymentTypeAll = (search: string) => {
 };
 
 export function usePaymentTypeAllSearch() {
-  const loadPaymentType = async (input: string): Promise<Option[]> => {
+  const loadPaymentTypeSearch = async (input: string): Promise<Option[]> => {
     const categories = await paymentTypeRepository.AllPaymentType(input);
 
     return categories.map((c) => ({
@@ -43,6 +34,6 @@ export function usePaymentTypeAllSearch() {
   };
 
   return {
-    loadPaymentType,
+    loadPaymentTypeSearch,
   };
 }

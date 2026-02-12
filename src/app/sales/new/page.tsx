@@ -3,7 +3,7 @@
 import { useClientSearch } from "@/data/hooks/client/useClientSearch";
 import { useEmployeeSearch } from "@/data/hooks/employee/useEmployeeSearch";
 import { useServiceTypeSearch } from "@/data/hooks/serviceType/useServiceTypeSearch";
-import { usePaymentTypeSearch } from "@/data/hooks/paymentType/usePaymentType";
+import { usePaymentTypeAllSearch } from "@/data/hooks/paymentType/usePaymentType";
 
 import { Input } from "@/ui/inputs/Input";
 import { AsyncSearchableSelect } from "@/ui/inputs/SearchSelect";
@@ -64,7 +64,7 @@ export default function NewSalePage() {
   const { loadClients } = useClientSearch();
   const { loadEmployees } = useEmployeeSearch();
   const { loadServiceType } = useServiceTypeSearch();
-  const { loadPaymentType } = usePaymentTypeSearch();
+  const { loadPaymentTypeSearch } = usePaymentTypeAllSearch();
 
   return (
     <section className="w-full px-6 space-y-6">
@@ -152,7 +152,7 @@ export default function NewSalePage() {
 <PaymentModal
   isOpen={sale.isPaymentModalOpen}
   totalAmount={sale.saleTotal}
-  loadPaymentMethods={loadPaymentType}
+  loadPaymentMethods={loadPaymentTypeSearch}
   isLoading={sale.isSaving}
   onClose={() => sale.setIsPaymentModalOpen(false)}
   onConfirm={sale.confirmSale}

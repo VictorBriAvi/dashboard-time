@@ -1,5 +1,8 @@
-export interface SalesByPayment {
+export interface PaymentTypeBalance {
+  paymentTypeId: number;
   medioDePago: string;
-  totalRecaudado: number;
-  cantidadOperaciones: number;
+  totalVentas: number;
+  totalGastos: number;
+  totalDisponible: number;
 }
+

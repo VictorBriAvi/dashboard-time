@@ -1,11 +1,25 @@
-import { SalesByPayment } from "@/core/models/reports/SalesByPayment";
+import { PaymentTypeBalance } from "@/core/models/reports/SalesByPayment";
+
+
+// export const salesByPaymentService = {
+//   formatForChart: (items: PaymentTypeBalance[]) => {
+//     return items.map((item) => ({
+//       name: item.medioDePago,
+//       value: item.totalDisponible,
+//     }));
+//   },
+// };
+
+
 
 export const salesByPaymentService = {
-  formatForChart: (items: SalesByPayment[]) => {
+  formatForGroupedChart: (items: PaymentTypeBalance[]) => {
     return items.map((item) => ({
       name: item.medioDePago,
-      value: item.totalRecaudado,
-      operaciones: item.cantidadOperaciones,
+      ventas: item.totalVentas,
+      gastos: item.totalGastos,
+      disponible: item.totalDisponible,
     }));
   },
 };
+

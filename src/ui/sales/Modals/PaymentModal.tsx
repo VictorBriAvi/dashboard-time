@@ -6,6 +6,7 @@ import { usePaymentModal } from "@/ui/sales/Modals/Hook/usePaymentModal";
 import { ColumnDef } from "@tanstack/react-table";
 import GenericDataTable from "@/ui/dataTable/GenericDataTable";
 import { formatARS } from "@/core/utils/format";
+import { usePaymentTypeAllSearch } from "@/data/hooks/paymentType/usePaymentType";
 
 
 interface PaymentModalProps {
@@ -33,6 +34,7 @@ export function PaymentModal({
   isLoading,
 }: PaymentModalProps) {
   const payment = usePaymentModal(totalAmount);
+  const { loadPaymentTypeSearch } = usePaymentTypeAllSearch();
 
   const tableData: PaymentRow[] = payment.payments.map((p, index) => ({
     paymentMethodId: p.paymentMethodId,

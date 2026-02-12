@@ -10,13 +10,13 @@ import { Expense } from "@/core/models/expense/expense";
 import { useExpensePage } from "@/app/expenses/hook/useExpensePage";
 import { useExpenseCategorieSearch } from "@/data/hooks/expenseCategorie/useExpenseCategorie";
 import { EditExpenseModal } from "./modal/EditExpenseModal";
-import { usePaymentTypeSearch } from "@/data/hooks/paymentType/usePaymentType";
+import { usePaymentTypeAllSearch } from "@/data/hooks/paymentType/usePaymentType";
 import PaymentTypePage from "../paymentType/page";
 
 export default function ExpensePage() {
   const expensePage = useExpensePage();
   const { loadExpenseCategories } = useExpenseCategorieSearch();
-  const { loadPaymentType } = usePaymentTypeSearch();
+  const { loadPaymentTypeSearch } = usePaymentTypeAllSearch();
 
   const columns: ColumnDef<Expense>[] = [
     {
@@ -71,7 +71,7 @@ export default function ExpensePage() {
 
           <AsyncSearchableSelect
             label="Tipo de pago"
-            loadOptions={loadPaymentType}
+            loadOptions={loadPaymentTypeSearch}
             value={expensePage.paymentTypeSelected}
             onChange={expensePage.setPaymentTypeSelected}
           />
@@ -109,10 +109,17 @@ export default function ExpensePage() {
           />
 
           <AsyncSearchableSelect
-            label="Filtrar por tipo"
+            label="Filtrar por tipo de gasto"
             loadOptions={loadExpenseCategories}
             value={expensePage.expenseTypeFilter}
             onChange={expensePage.setExpenseTypeFilter}
+          />
+
+          <AsyncSearchableSelect
+            label="Filtrar por tipo de pago"
+            loadOptions={loadPaymentTypeSearch}
+            value={expensePage.paymentTypeFilter}
+            onChange={expensePage.setPaymentTypeFilter}
           />
 
           {/* RANGO DE FECHAS */}
@@ -183,7 +190,7 @@ export default function ExpensePage() {
           price={expensePage.editPrice}
           isUpdating={expensePage.isUpdating}
           loadExpenseTypes={loadExpenseCategories}
-          loadPaymentTypes={loadPaymentType}
+          loadPaymentTypes={loadPaymentTypeSearch}
           onChangeExpenseType={expensePage.setEditExpenseType}
           onChangePaymentType={expensePage.setEditPaymentType}
           onChangeDescription={expensePage.setEditDescription}

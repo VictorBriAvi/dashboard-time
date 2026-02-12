@@ -1,55 +1,62 @@
 "use client";
 
-import { EmployeeSaleChartData } from "@/core/models/reports/EmployeeSaleSummaryReportModel";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
-const defaultColors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"];
+const defaultColors = ["#3b82f6", "#ef4444", "#10b981"];
+
+interface MultiBarConfig {
+  key: string;
+  label: string;
+  color?: string;
+}
 
 interface BarChartCustomProps {
   title: string;
-  data: EmployeeSaleChartData[];
-  colors?: string[];
-  dataKeyName?: keyof EmployeeSaleChartData;
-  dataKeyValue?: keyof EmployeeSaleChartData;
+  data: any[];
+  loading: boolean;
+  dataKeyName?: string;
+  dataKeyValue?: string;
+  bars?: MultiBarConfig[];
   height?: number;
   orientation?: "vertical" | "horizontal";
-  loading: boolean
 }
+
+const currencyFormatter = (value: number) =>
+  `$ ${value.toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 export default function BarChartCustom({
   title,
   data,
-  colors = defaultColors,
+  loading,
   dataKeyName = "name",
   dataKeyValue = "value",
+  bars,
   height = 350,
   orientation = "vertical",
-  loading = false
 }: BarChartCustomProps) {
-const isHorizontal = orientation === "horizontal";
+  const isHorizontal = orientation === "horizontal";
 
-  // 🔥 LOADING SKELETON
   if (loading) {
     return (
       <div className="bg-white rounded-2xl shadow-md p-6 animate-pulse">
         <div className="h-6 w-52 bg-gray-300 rounded mb-6"></div>
-
-        <div className="w-full bg-gray-100 rounded" style={{ height }}>
-          <div className="h-full flex items-end gap-3 p-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-gray-300 rounded w-6"
-                style={{
-                  height: `${30 + Math.random() * 60}%`,
-                }}
-              ></div>
-            ))}
-          </div>
-        </div>
+        <div className="w-full bg-gray-100 rounded" style={{ height }} />
       </div>
     );
   }
+
   return (
     <>
       <h2 className="text-xl font-semibold text-gray-700 mb-6">{title}</h2>
@@ -60,23 +67,44 @@ const isHorizontal = orientation === "horizontal";
 
           {isHorizontal ? (
             <>
-              <XAxis type="number" />
+              <XAxis
+                type="number"
+                tickFormatter={currencyFormatter}
+              />
               <YAxis dataKey={dataKeyName} type="category" width={150} />
             </>
           ) : (
             <>
               <XAxis dataKey={dataKeyName} />
-              <YAxis />
+              <YAxis tickFormatter={currencyFormatter} />
             </>
           )}
 
-          <Tooltip />
+            <Tooltip
+              formatter={(value) =>
+                typeof value === "number" ? currencyFormatter(value) : value
+              }
+            />
 
-          <Bar dataKey={dataKeyValue}>
-            {data.map((_, i) => (
-              <Cell key={i} fill={colors[i % colors.length]} />
-            ))}
-          </Bar>
+          <Legend />
+
+          {bars && bars.length > 0 ? (
+            bars.map((bar, index) => (
+              <Bar
+                key={bar.key}
+                dataKey={bar.key}
+                name={bar.label}
+                fill={bar.color || defaultColors[index % defaultColors.length]}
+                radius={[6, 6, 0, 0]}
+              />
+            ))
+          ) : (
+            <Bar
+              dataKey={dataKeyValue}
+              fill={defaultColors[0]}
+              radius={[6, 6, 0, 0]}
+            />
+          )}
         </BarChart>
       </ResponsiveContainer>
     </>

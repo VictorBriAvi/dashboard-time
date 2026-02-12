@@ -12,6 +12,7 @@ interface SummaryCardProps {
   rightIcon?: ReactNode;
   rightLabel?: string;
   loading?: boolean;
+  hideAmount?: boolean; // 👈 NUEVO
 }
 
 export default function SummaryCard({
@@ -24,6 +25,7 @@ export default function SummaryCard({
   rightIcon,
   rightLabel,
   loading = false,
+  hideAmount = false, // 👈 default
 }: SummaryCardProps) {
   if (loading) {
     return (
@@ -49,14 +51,18 @@ export default function SummaryCard({
     >
       <h2 className="text-gray-600 font-semibold text-lg mb-2">{title}</h2>
 
-      <div className={`text-4xl font-bold mb-6 ${amountColor}`}>{amount}</div>
+      <div className={`text-4xl font-bold mb-6 ${amountColor}`}>
+        {hideAmount ? "••••••" : amount}
+      </div>
 
       <div className="flex items-center justify-between text-gray-600">
         <div className="flex items-center gap-2">
           {leftIcon && (
             <>
               {leftIcon}
-              {leftLabel && <span className="text-sm font-medium">{leftLabel}</span>}
+              {leftLabel && (
+                <span className="text-sm font-medium">{leftLabel}</span>
+              )}
             </>
           )}
         </div>
@@ -65,7 +71,9 @@ export default function SummaryCard({
           {rightIcon && (
             <>
               {rightIcon}
-              {rightLabel && <span className="text-sm font-medium">{rightLabel}</span>}
+              {rightLabel && (
+                <span className="text-sm font-medium">{rightLabel}</span>
+              )}
             </>
           )}
         </div>

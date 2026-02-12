@@ -11,6 +11,9 @@ import {
 } from "@/data/hooks/expense/useExpenseMutation";
 
 export function useExpensePage() {
+
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<Option | null>(null);
+
   // ======================
   // Crear
   // ======================
@@ -44,12 +47,15 @@ export function useExpensePage() {
   // ======================
   // Queries
   // ======================
-  const { data: expenses = [], isLoading, isError } = useExpenseAll(
-    search,
-    expenseTypeFilter?.value,
-    fromDate || undefined,
-    toDate || undefined
-  );
+const { data: expenses = [], isLoading, isError } = useExpenseAll(
+  search,
+  expenseTypeFilter?.value,
+  paymentTypeFilter?.value,
+  fromDate || undefined,
+  toDate || undefined
+);
+
+
 
   // ======================
   // Mutations
@@ -160,6 +166,7 @@ export function useExpensePage() {
   const clearFilters = () => {
     setSearch("");
     setExpenseTypeFilter(null);
+    setPaymentTypeFilter(null);
     setFromDate("");
     setToDate("");
   };
@@ -189,6 +196,9 @@ export function useExpensePage() {
     toDate,
     setToDate,
     clearFilters,
+    paymentTypeFilter,
+    setPaymentTypeFilter,
+
 
     // listar
     expenses,

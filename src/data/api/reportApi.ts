@@ -4,7 +4,7 @@ import { ApiResponse } from "@/core/interfaces/apiResponse";
 import { DailySummaryRaw } from "@/core/models/reports/DailySummaryReportModel";
 import { EmployeeSaleSummaryRaw } from "@/core/models/reports/EmployeeSaleSummaryReportModel";
 import { ExpenseCategoryRaw } from "@/core/models/reports/ExpenseCategoryRaw";
-import { SalesByPayment } from "@/core/models/reports/SalesByPayment";
+import { PaymentTypeBalance } from "@/core/models/reports/SalesByPayment";
 import { SaleDTO } from "../DTO/Sale/SaleDTO";
 
 export const reportApi = {
@@ -52,8 +52,8 @@ export const reportApi = {
   },
 
   getSalesSummaryByPayment: async (startDate: string, endDate: string) => {
-    const response = await axiosClient.get<SalesByPayment[]>(
-      "/report/sales-summary-by-payment",
+    const response = await axiosClient.get<PaymentTypeBalance[]>(
+      "/report/payment-type-balance",
       {
         params: { startDate, endDate },
       }
@@ -61,6 +61,7 @@ export const reportApi = {
 
     return response.data;
   },
+
   getSalesByDateRange: async (fromDate: string, toDate: string) => {
     const response = await axiosClient.get<SaleDTO[]>("/sale/by-date-range", {
       params: { fromDate, toDate },
