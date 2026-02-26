@@ -36,10 +36,9 @@ export const saleMapper = {
   },
 };
 
-
-export const saleOriginMapper = { fromDto(dtos: SaleDTO[]): Sale[] {
-  
-  return dtos.map((dto) => ({
+export const saleOriginMapper = {
+  fromDto(dtos: SaleDTO[]): Sale[] {
+    return dtos.map((dto) => ({
       id: dto.id,
       clientId: dto.clientId,
       nameClient: dto.nameClient,

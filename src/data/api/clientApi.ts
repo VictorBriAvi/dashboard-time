@@ -1,38 +1,54 @@
-import { Client, CreateClient } from "@/core/models/client/client";
+import axios from "axios";
+import { CreateClient } from "@/core/models/client/client";
 import { ClientSearchDTO } from "@/core/models/client/ClientSearchDTO";
-import { axiosClient } from "@/lib/axiosClient";
 import { ClientDTO, EditClientDTO } from "../DTO/client/clientDTO";
 
 export const clientApi = {
   search: async (query: string): Promise<ClientSearchDTO[]> => {
     if (!query || query.length < 1) return [];
 
-    const response = await axiosClient.get<ClientSearchDTO[]>(
-      "/client/search",
+    const response = await axios.get<ClientSearchDTO[]>(
+      "/api/client/search",
       {
         params: { query },
-      },
+      }
     );
 
     return response.data;
   },
+
   All: async (search: string): Promise<ClientDTO[]> => {
-    const response = await axiosClient.get<ClientDTO[]>(
-      "/client",
-      { params: { search } }
+    const response = await axios.get<ClientDTO[]>(
+      "/api/client",
+      {
+        params: { search },
+      }
     );
+
     return response.data;
   },
+
   Create: async (payload: CreateClient) => {
-    const { data } = await axiosClient.post("/client", payload);
+    const { data } = await axios.post(
+      "/api/client",
+      payload
+    );
+
     return data;
   },
+
   Update: async (payload: EditClientDTO) => {
     const { id, ...body } = payload;
-    const { data } = await axiosClient.put(`/client/${id}`, body);
+
+    const { data } = await axios.put(
+      `/api/client/${id}`,
+      body
+    );
+
     return data;
   },
+
   Delete: async (id: number) => {
-    await axiosClient.delete(`/client/${id}`);
+    await axios.delete(`/api/client/${id}`);
   },
 };

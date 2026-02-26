@@ -4,7 +4,7 @@ export interface CreateSaleDetailDraft {
   unitPrice: number;
   discountPercent: number;
   additionalCharge: number;
-  total: number; // 👈 obligatorio
+  total: number
 }
 
 export interface CreateSalePaymentDraft {

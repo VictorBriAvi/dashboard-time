@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export", // 👈 CLAVE
   images: {
-    unoptimized: true, // 👈 requerido para GitHub Pages
+    unoptimized: true, // opcional, puedes quitarlo si no usas GitHub Pages
   },
 };
 

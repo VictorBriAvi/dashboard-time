@@ -1,17 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Menu, X, ChevronDown, LogOut } from "lucide-react";
 import Link from "next/link";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const router = useRouter();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const toggleSubmenu = (key: string) => {
     setOpenSubmenu(openSubmenu === key ? null : key);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/logout", { method: "POST" });
+      setIsOpen(false);
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Error al cerrar sesión", error);
+    }
   };
 
   return (
@@ -67,23 +80,19 @@ export default function Navbar() {
 
               {openSubmenu === "expenses" && (
                 <div className="submenu-premium">
-                  <Link href="/expenses/expensesCategorie" className="submenu-btn">
+                  <Link
+                    href="/expenses/expensesCategorie"
+                    className="submenu-btn"
+                  >
                     Categorías Gasto
                   </Link>
                 </div>
               )}
             </div>
 
-            {/* Clientes */}
-            <div className="relative">
-              <div className="flex items-center gap-1">
-                <Link href="/client" className="nav-link">
-                  Clientes
-                </Link>
-              </div>
-
-
-            </div>
+            <Link href="/client" className="nav-link">
+              Clientes
+            </Link>
 
             <Link href="/paymentType" className="nav-link">
               Tipos de pago
@@ -92,6 +101,15 @@ export default function Navbar() {
             <Link href="/employee" className="nav-link">
               Colaboradores
             </Link>
+
+            {/* 🔥 Logout Desktop */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 transition"
+            >
+              <LogOut size={16} />
+              Salir
+            </button>
           </div>
 
           {/* Botón Mobile */}
@@ -103,82 +121,85 @@ export default function Navbar() {
         </div>
 
         {/* ===== Mobile ===== */}
-{/* ===== Mobile ===== */}
-{isOpen && (
-  <div className="md:hidden bg-white border-t border-gray-200 py-2">
-    {[
-      {
-        key: "sales",
-        label: "Venta",
-        href: "/sales",
-      },
-      {
-        key: "services",
-        label: "Servicios",
-        href: "/serviceType",
-        sub: [{ label: "Categorías", href: "/serviceType/categories" }],
-      },
-      {
-        key: "expenses",
-        label: "Gastos",
-        href: "/expenses",
-        sub: [{ label: "Categorías", href: "/expenses/expensesCategorie" }],
-      },
-      {
-        key: "client",
-        label: "Clientes",
-        href: "/client",
-      },
-      {
-        key: "payment-types",
-        label: "Tipos de pago",
-        href: "/paymentType",
-      },
-      {
-        key: "employees",
-        label: "Colaboradores",
-        href: "/employee",
-      },
-    ].map((item) => (
-      <div key={item.key}>
-        <div className="flex justify-between items-center px-4 py-2">
-          <Link
-            href={item.href}
-            onClick={toggleMenu}
-            className="font-medium text-gray-700"
-          >
-            {item.label}
-          </Link>
+        {isOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 py-2">
+            {[
+              { key: "sales", label: "Venta", href: "/sales" },
+              {
+                key: "services",
+                label: "Servicios",
+                href: "/serviceType",
+                sub: [
+                  {
+                    label: "Categorías",
+                    href: "/serviceType/categories",
+                  },
+                ],
+              },
+              {
+                key: "expenses",
+                label: "Gastos",
+                href: "/expenses",
+                sub: [
+                  {
+                    label: "Categorías",
+                    href: "/expenses/expensesCategorie",
+                  },
+                ],
+              },
+              { key: "client", label: "Clientes", href: "/client" },
+              { key: "payment-types", label: "Tipos de pago", href: "/paymentType" },
+              { key: "employees", label: "Colaboradores", href: "/employee" },
+            ].map((item) => (
+              <div key={item.key}>
+                <div className="flex justify-between items-center px-4 py-2">
+                  <Link
+                    href={item.href}
+                    onClick={toggleMenu}
+                    className="font-medium text-gray-700"
+                  >
+                    {item.label}
+                  </Link>
 
-          {item.sub && (
-            <button
-              onClick={() => toggleSubmenu(item.key)}
-              className="p-1"
-            >
-              <ChevronDown size={16} />
-            </button>
-          )}
-        </div>
+                  {item.sub && (
+                    <button
+                      onClick={() => toggleSubmenu(item.key)}
+                      className="p-1"
+                    >
+                      <ChevronDown size={16} />
+                    </button>
+                  )}
+                </div>
 
-        {item.sub && openSubmenu === item.key && (
-          <div className="pl-8 pb-2 text-sm text-gray-600">
-            {item.sub.map((s) => (
-              <Link
-                key={s.href}
-                href={s.href}
-                onClick={toggleMenu}
-                className="block py-1"
-              >
-                {s.label}
-              </Link>
+                {item.sub && openSubmenu === item.key && (
+                  <div className="pl-8 pb-2 text-sm text-gray-600">
+                    {item.sub.map((s) => (
+                      <Link
+                        key={s.href}
+                        href={s.href}
+                        onClick={toggleMenu}
+                        className="block py-1"
+                      >
+                        {s.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
+
+            {/* 🔥 Logout Mobile */}
+            <div className="border-t mt-2 pt-2 px-4">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 text-red-600 font-medium py-2"
+              >
+                <LogOut size={18} />
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         )}
-      </div>
-    ))}
-  </div>
-)}
-
       </nav>
 
       <style jsx>{`

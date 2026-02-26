@@ -103,6 +103,7 @@ export default function BalanceSummary() {
     toDate: dateFilter.to,
   });
 
+
   // 🔹 RESTO DE REPORTES
   const { data: barData = [] } = useEmployeeSaleSummary(
     dateFilter.from,
@@ -114,10 +115,8 @@ export default function BalanceSummary() {
     dateFilter.to,
   );
 
-  const { data: paymentData = [], isLoading: barChart } =
-    useSalesSummaryByPayment(dateFilter.from, dateFilter.to);
+  const { data: paymentData = [], isLoading: barChart } = useSalesSummaryByPayment(dateFilter.from, dateFilter.to);
 
-  console.log(paymentData);
   useSalesByDateRange(dateFilter.from, dateFilter.to);
 
   // 🔹 UI Helpers
@@ -145,27 +144,24 @@ export default function BalanceSummary() {
   return (
     <div className="pt-6">
       {/* HEADER + FILTROS */}
-<div className="mt-8 mb-8 px-6">
+      <div className="mt-8 mb-8 px-6">
+        <div className="bg-white border rounded-2xl shadow-sm p-6 space-y-6">
+          {/* 🔹 FILA SUPERIOR - CONTEXTO + ACCIÓN */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <p className="text-sm text-gray-600">
+              Mostrando datos del{" "}
+              <span className="font-semibold text-gray-900">
+                {dateFilter.from}
+              </span>{" "}
+              al{" "}
+              <span className="font-semibold text-gray-900">
+                {dateFilter.to}
+              </span>
+            </p>
 
-  <div className="bg-white border rounded-2xl shadow-sm p-6 space-y-6">
-
-    {/* 🔹 FILA SUPERIOR - CONTEXTO + ACCIÓN */}
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-
-      <p className="text-sm text-gray-600">
-        Mostrando datos del{" "}
-        <span className="font-semibold text-gray-900">
-          {dateFilter.from}
-        </span>{" "}
-        al{" "}
-        <span className="font-semibold text-gray-900">
-          {dateFilter.to}
-        </span>
-      </p>
-
-      <button
-        onClick={() => setShowAmounts((prev) => !prev)}
-        className="
+            <button
+              onClick={() => setShowAmounts((prev) => !prev)}
+              className="
           inline-flex items-center gap-2
           px-5 py-2.5
           rounded-xl
@@ -177,81 +173,76 @@ export default function BalanceSummary() {
           active:scale-[0.97]
           focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
         "
-      >
-        {showAmounts ? "Ocultar montos" : "Mostrar montos"}
-      </button>
-    </div>
+            >
+              {showAmounts ? "Ocultar montos" : "Mostrar montos"}
+            </button>
+          </div>
 
-    {/* 🔹 FILA INFERIOR - FILTROS */}
-    <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
+          {/* 🔹 FILA INFERIOR - FILTROS */}
+          <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
+            {/* Fechas + buscar */}
+            <div className="flex flex-wrap items-end gap-3">
+              <input
+                type="date"
+                value={inputDesde}
+                onChange={(e) => setInputDesde(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
 
-      {/* Fechas + buscar */}
-      <div className="flex flex-wrap items-end gap-3">
+              <input
+                type="date"
+                value={inputHasta}
+                onChange={(e) => setInputHasta(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
 
-        <input
-          type="date"
-          value={inputDesde}
-          onChange={(e) => setInputDesde(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-
-        <input
-          type="date"
-          value={inputHasta}
-          onChange={(e) => setInputHasta(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-
-        <button
-          onClick={handleSearch}
-          className="
+              <button
+                onClick={handleSearch}
+                className="
             px-4 py-2
             rounded-lg
             bg-gray-900 text-white text-sm font-medium
             hover:bg-black
             transition
           "
-        >
-          Buscar
-        </button>
+              >
+                Buscar
+              </button>
+            </div>
+
+            {/* Rangos rápidos */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                className={`${baseBtn} ${getBtnClass("day")}`}
+                onClick={() => handleRangeChange("day")}
+              >
+                Diaria
+              </button>
+
+              <button
+                className={`${baseBtn} ${getBtnClass("week")}`}
+                onClick={() => handleRangeChange("week")}
+              >
+                Semanal
+              </button>
+
+              <button
+                className={`${baseBtn} ${getBtnClass("month")}`}
+                onClick={() => handleRangeChange("month")}
+              >
+                Mensual
+              </button>
+
+              <button
+                className={`${baseBtn} ${getBtnClass("year")}`}
+                onClick={() => handleRangeChange("year")}
+              >
+                Año
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Rangos rápidos */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          className={`${baseBtn} ${getBtnClass("day")}`}
-          onClick={() => handleRangeChange("day")}
-        >
-          Diaria
-        </button>
-
-        <button
-          className={`${baseBtn} ${getBtnClass("week")}`}
-          onClick={() => handleRangeChange("week")}
-        >
-          Semanal
-        </button>
-
-        <button
-          className={`${baseBtn} ${getBtnClass("month")}`}
-          onClick={() => handleRangeChange("month")}
-        >
-          Mensual
-        </button>
-
-        <button
-          className={`${baseBtn} ${getBtnClass("year")}`}
-          onClick={() => handleRangeChange("year")}
-        >
-          Año
-        </button>
-      </div>
-
-    </div>
-
-  </div>
-</div>
-
 
       {/* CARDS */}
       <div className="px-4 sm:px-6 lg:px-8 mb-10">
@@ -291,7 +282,6 @@ export default function BalanceSummary() {
             loading={isLoadingCard}
             hideAmount={!showAmounts}
           />
-          {/* PAGOS COLABORADORES */}
           <SummaryCard
             title={summary?.totalPagosColaboradores.title}
             amount={summary?.totalPagosColaboradores.amount}
@@ -343,7 +333,7 @@ export default function BalanceSummary() {
           />
         </div>
 
-        <div className="col-span-12 md:col-span-6 bg-white rounded-2xl p-6">
+       <div className="col-span-12 md:col-span-6 bg-white rounded-2xl p-6">
           <BarChartCustom
             title="Venta colaboradores"
             data={barData}
@@ -352,7 +342,7 @@ export default function BalanceSummary() {
             orientation="horizontal"
             loading={barChart}
           />
-        </div>
+        </div> 
       </div>
     </div>
   );

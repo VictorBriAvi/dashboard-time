@@ -4,7 +4,7 @@ import { Client, CreateClient } from "@/core/models/client/client";
 
 export const clientRepository = {
   searchClients: async (query: string) => {
-    const raw = await clientApi.search(query);
+    const raw = await clientApi.All(query);
     return clientMapper.fromSearchpDto(raw);
   },
   AllClient: async (search: string) => {

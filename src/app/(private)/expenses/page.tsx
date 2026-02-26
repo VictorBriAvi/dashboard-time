@@ -1,0 +1,205 @@
+"use client";
+
+import { ColumnDef } from "@tanstack/react-table";
+import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { Input } from "@/ui/inputs/Input";
+import { AsyncSearchableSelect } from "@/ui/inputs/SearchSelect";
+
+import { formatARS } from "@/core/utils/format";
+import { Expense } from "@/core/models/expense/expense";
+import { useExpenseCategorieSearch } from "@/data/hooks/expenseCategorie/useExpenseCategorie";
+import { EditExpenseModal } from "./modal/EditExpenseModal";
+import { usePaymentTypeAllSearch } from "@/data/hooks/paymentType/usePaymentType";
+import PaymentTypePage from "../paymentType/page";
+import { useExpensePage } from "./hook/useExpensePage";
+
+export default function ExpensePage() {
+  const expensePage = useExpensePage();
+  const { loadExpenseCategories } = useExpenseCategorieSearch();
+  const { loadPaymentTypeSearch } = usePaymentTypeAllSearch();
+
+  const columns: ColumnDef<Expense>[] = [
+    {
+      header: "Fecha",
+      accessorKey: "expensesDateStr",
+    },
+    { header: "Descripción", accessorKey: "description" },
+    {
+      header: "Precio",
+      accessorKey: "price",
+      cell: ({ getValue }) => formatARS(getValue<number>()),
+    },
+    {
+      header: "Tipo de gasto",
+      accessorKey: "nameExpenseType",
+    },
+    {
+      header: "Tipo de pago",
+      accessorKey: "paymentTypeName",
+    },
+  ];
+
+  return (
+    <section className="w-full px-6 space-y-6">
+      <div className="bg-white rounded-2xl shadow-md p-6">
+        <h2 className="text-xl font-semibold">Gastos</h2>
+      </div>
+
+      <div className="grid grid-cols-12 gap-6">
+        {/* =====================
+            CREAR GASTO
+        ====================== */}
+        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-4">
+          <Input
+            label="Descripción"
+            value={expensePage.description}
+            onChange={expensePage.setDescription}
+          />
+
+          <Input
+            label="Precio"
+            value={expensePage.price}
+            onChange={expensePage.setPrice}
+          />
+
+          <AsyncSearchableSelect
+            label="Tipo de gasto"
+            loadOptions={loadExpenseCategories}
+            value={expensePage.expenseTypeSelected}
+            onChange={expensePage.setExpenseTypeSelected}
+          />
+
+          <AsyncSearchableSelect
+            label="Tipo de pago"
+            loadOptions={loadPaymentTypeSearch}
+            value={expensePage.paymentTypeSelected}
+            onChange={expensePage.setPaymentTypeSelected}
+          />
+
+          {/* ✅ FECHA DEL GASTO */}
+          <Input
+            type="date"
+            label="Fecha del gasto"
+            value={expensePage.expenseDate}
+            onChange={expensePage.setExpenseDate}
+          />
+
+          <button
+            onClick={expensePage.addExpense}
+            disabled={expensePage.isCreating || !expensePage.expenseDate}
+            className={`w-full rounded-md py-2 text-sm transition ${
+              expensePage.isCreating
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black text-white hover:bg-gray-800"
+            }`}
+          >
+            {expensePage.isCreating ? "Agregando..." : "Agregar gasto"}
+          </button>
+        </div>
+
+        {/* =====================
+            LISTADO + FILTROS
+        ====================== */}
+        <div className="col-span-12 lg:col-span-9 bg-white rounded-2xl shadow-md p-6 space-y-4">
+          <Input
+            label="Buscar descripción"
+            value={expensePage.search}
+            onChange={expensePage.setSearch}
+            placeholder="Ej: Alquiler"
+          />
+
+          <AsyncSearchableSelect
+            label="Filtrar por tipo de gasto"
+            loadOptions={loadExpenseCategories}
+            value={expensePage.expenseTypeFilter}
+            onChange={expensePage.setExpenseTypeFilter}
+          />
+
+          <AsyncSearchableSelect
+            label="Filtrar por tipo de pago"
+            loadOptions={loadPaymentTypeSearch}
+            value={expensePage.paymentTypeFilter}
+            onChange={expensePage.setPaymentTypeFilter}
+          />
+
+          {/* RANGO DE FECHAS */}
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="date"
+              label="Desde"
+              value={expensePage.fromDate}
+              onChange={expensePage.setFromDate}
+            />
+
+            <Input
+              type="date"
+              label="Hasta"
+              value={expensePage.toDate}
+              onChange={expensePage.setToDate}
+            />
+          </div>
+
+          <button
+            onClick={expensePage.clearFilters}
+            className="text-sm underline text-gray-500"
+          >
+            Limpiar filtros
+          </button>
+          <GenericDataTable<Expense>
+            data={expensePage.expenses}
+            columns={columns}
+            loading={expensePage.isLoading}
+            error={expensePage.isError}
+            rowKey={(row) => row.id}
+            rowActions={[
+              {
+                id: "edit",
+                label: "Editar",
+                variant: "edit",
+                onClick: (row) => expensePage.openEditModal(row),
+              },
+              {
+                id: "delete",
+                variant: "delete",
+                label: expensePage.isDeleting ? "Eliminando..." : "Eliminar",
+                disabled: () => expensePage.isDeleting,
+                onClick: (row) => {
+                  if (
+                    window.confirm(
+                      `¿Seguro que deseas eliminar el gasto "${row.description}"?`,
+                    )
+                  ) {
+                    expensePage.removeExpense(row.id);
+                  }
+                },
+              },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* =====================
+          MODAL EDICIÓN
+      ====================== */}
+      {expensePage.editingExpense && (
+        <EditExpenseModal
+          expenseType={expensePage.editExpenseType}
+          paymentType={expensePage.editPaymentType}
+          description={expensePage.editDescription}
+          expenseDate={expensePage.editExpenseDate}
+          price={expensePage.editPrice}
+          isUpdating={expensePage.isUpdating}
+          loadExpenseTypes={loadExpenseCategories}
+          loadPaymentTypes={loadPaymentTypeSearch}
+          onChangeExpenseType={expensePage.setEditExpenseType}
+          onChangePaymentType={expensePage.setEditPaymentType}
+          onChangeDescription={expensePage.setEditDescription}
+          onChangeExpenseDate={expensePage.setEditExpenseDate}
+          onChangePrice={expensePage.setEditPrice}
+          onSave={expensePage.saveEditExpense}
+          onClose={() => expensePage.setEditingExpense(null)}
+        />
+      )}
+    </section>
+  );
+}
