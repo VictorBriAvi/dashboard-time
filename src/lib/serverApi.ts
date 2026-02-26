@@ -8,7 +8,10 @@ const httpsAgent =
     ? new https.Agent({ rejectUnauthorized: false })
     : undefined;
 
-const BASE_URL = "https://localhost:7116/api";
+const BASE_URL = "https://victoravila-001-site1.ktempurl.com/api";
+
+// https://localhost:7116/api
+// https://victoravila-001-site1.ktempurl.com/api
 
 type ApiOptions = {
   method: Method;
