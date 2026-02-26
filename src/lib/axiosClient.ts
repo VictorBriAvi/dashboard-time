@@ -7,7 +7,7 @@ const httpsAgent =
     : undefined;
 
 export const axiosClient = axios.create({
-  baseURL: "https://localhost:7116/api",
+  baseURL: "https://victoravila-001-site1.ktempurl.com/api",
   headers: {
     "Content-Type": "application/json",
   },
