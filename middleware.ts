@@ -1,8 +1,18 @@
-
-
-
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
+function isTokenExpired(token: string) {
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(
+      Buffer.from(payload, "base64").toString()
+    );
+
+    return decoded.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -14,16 +24,16 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get("token");
+  const token = request.cookies.get("token")?.value;
 
   if (pathname.startsWith("/login")) {
-    if (token) {
+    if (token && !isTokenExpired(token)) {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
   }
 
-  if (!token) {
+  if (!token || isTokenExpired(token)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -31,5 +41,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/:path*"], // 🔥 Mucho más estable en Next 16
+  matcher: ["/:path*"],
 };

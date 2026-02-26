@@ -16,9 +16,7 @@ export default async function RootLayout({
   return (
     <html lang="es">
       <body>
-        <Providers>
         <Providers>{children}</Providers>
-        </Providers>
       </body>
     </html>
   );

@@ -6,10 +6,10 @@ export async function POST() {
 
   cookieStore.set("token", "", {
     httpOnly: true,
-    secure: false, // en producción true
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    expires: new Date(0), // 💣 invalida inmediatamente
+    expires: new Date(0),
   });
 
   return NextResponse.json({ success: true });
