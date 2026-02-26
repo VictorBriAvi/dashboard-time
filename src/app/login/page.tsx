@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { axiosClient } from "@/lib/axiosClient";
+import { handleApi } from "@/lib/serverApi";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -9,6 +11,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+console.log('URL usada:', axiosClient.defaults.baseURL);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

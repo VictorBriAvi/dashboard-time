@@ -6,8 +6,8 @@ export async function POST() {
 
   cookieStore.set("token", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "none",
+    secure: true,
     path: "/",
     expires: new Date(0),
   });
