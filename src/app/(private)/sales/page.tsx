@@ -21,7 +21,6 @@ export default function SalesPage() {
   const { loadEmployees } = useEmployeeSearch();
   const { loadPaymentTypeSearch } = usePaymentTypeAllSearch();
   const columns: ColumnDef<SaleTableModel>[] = [
-    
     {
       header: "Id",
       accessorKey: "id",
@@ -76,82 +75,148 @@ export default function SalesPage() {
     },
   ];
 
-  return (
-    <section className="w-full px-6 space-y-6">
-      <div className="bg-white rounded-2xl shadow-md p-6">
-        <h2 className="text-xl font-semibold">Ventas</h2>
+return (
+  <section className="w-full px-6 py-6 space-y-6">
+    {/* ===== Header ===== */}
+    <div className="flex items-center justify-between bg-white rounded-2xl shadow-md p-6">
+      <div>
+        <h2 className="text-xl font-semibold text-gray-800">Ventas</h2>
+        <p className="text-sm text-gray-500">
+          Gestiona y filtra las ventas registradas
+        </p>
       </div>
 
       <Link
         href="/sales/new"
-        className="inline-flex items-center justify-center h-[38px] bg-blue-600 text-white px-5 rounded-md hover:bg-blue-700 transition"
+        className="
+          inline-flex items-center justify-center
+          h-[40px]
+          bg-blue-600 text-white
+          px-5
+          rounded-lg
+          text-sm font-medium
+          hover:bg-blue-700
+          transition-colors
+        "
       >
         + Nueva venta
       </Link>
+    </div>
 
-      <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-6 md:col-span-3">
-            <Input
-              type="date"
-              label="Desde"
-              value={salesPage.fromDate}
-              onChange={(value) => salesPage.setFromDate(value)}
-            />
-          </div>
+    {/* ===== Filtros ===== */}
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        salesPage.handleSearch();
+      }}
+      className="bg-white rounded-2xl shadow-md p-6 space-y-6"
+    >
+      <h3 className="text-sm font-medium text-gray-700">
+        Filtros
+      </h3>
 
-          <div className="col-span-6 md:col-span-3">
-            <Input
-              type="date"
-              label="Hasta"
-              value={salesPage.fromDate}
-              onChange={(value) => salesPage.setFromDate(value)}
-            />
-          </div>
-
-          <div className="col-span-12 md:col-span-3">
-            <AsyncSearchableSelect
-              label="Cliente"
-              loadOptions={loadClients}
-              value={salesPage.client}
-              onChange={salesPage.setClient}
-            />
-          </div>
-
-          <div className="col-span-12 md:col-span-3">
-            <AsyncSearchableSelect
-              label="Empleado"
-              loadOptions={loadEmployees}
-              value={salesPage.employee}
-              onChange={salesPage.setEmployee}
-            />
-          </div>
-
-          <div className="col-span-12 md:col-span-3">
-            <AsyncSearchableSelect
-              label="Tipo de pago"
-              loadOptions={loadPaymentTypeSearch}
-              value={salesPage.paymentType}
-              onChange={salesPage.setPaymentType}
-            />
-          </div>
-
+      <div className="grid grid-cols-12 gap-4">
+        <div className="col-span-6 md:col-span-3">
+          <Input
+            type="date"
+            label="Desde"
+            value={salesPage.fromDate}
+            onChange={(value) => salesPage.setFromDate(value)}
+          />
         </div>
 
+        <div className="col-span-6 md:col-span-3">
+          <Input
+            type="date"
+            label="Hasta"
+            value={salesPage.toDate}
+            onChange={(value) => salesPage.setToDate(value)}
+          />
+        </div>
+
+        <div className="col-span-12 md:col-span-3">
+          <AsyncSearchableSelect
+            label="Cliente"
+            loadOptions={loadClients}
+            value={salesPage.client}
+            onChange={salesPage.setClient}
+          />
+        </div>
+
+        <div className="col-span-12 md:col-span-3">
+          <AsyncSearchableSelect
+            label="Empleado"
+            loadOptions={loadEmployees}
+            value={salesPage.employee}
+            onChange={salesPage.setEmployee}
+          />
+        </div>
+
+        <div className="col-span-12 md:col-span-3">
+          <AsyncSearchableSelect
+            label="Tipo de pago"
+            loadOptions={loadPaymentTypeSearch}
+            value={salesPage.paymentType}
+            onChange={salesPage.setPaymentType}
+          />
+        </div>
+      </div>
+
+      {/* ===== Acciones ===== */}
+      <div className="border-t pt-4 flex items-center justify-between">
         <button
+          type="button"
           onClick={salesPage.clearFilters}
-          className="text-sm underline text-gray-500"
+          className="
+            text-sm text-gray-500
+            hover:text-gray-700
+            transition-colors
+          "
         >
           Limpiar filtros
         </button>
 
         <button
-          onClick={salesPage.handleSearch}
-          className="px-4 py-2 bg-black text-white rounded-lg"
+          type="submit"
+          disabled={salesPage.isLoading}
+          className="
+            px-5 py-2.5
+            bg-black text-white
+            rounded-lg
+            text-sm font-medium
+            hover:bg-gray-800
+            transition-colors
+            disabled:opacity-50
+            disabled:cursor-not-allowed
+          "
         >
-          Buscar
+          {salesPage.isLoading ? "Buscando..." : "Buscar"}
         </button>
+      </div>
+    </form>
 
+    {/* ===== Tabla ===== */}
+    <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
+
+      {/* Contador de resultados */}
+      {!salesPage.isLoading && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-600">
+            {salesPage.sales.length} resultado
+            {salesPage.sales.length !== 1 && "s"} encontrado
+            {salesPage.sales.length !== 1 && "s"}
+          </p>
+        </div>
+      )}
+
+      {/* Estado vacío */}
+      {!salesPage.isLoading && salesPage.sales.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-sm">
+            No se encontraron ventas con los filtros seleccionados.
+          </p>
+        </div>
+      ) : (
         <GenericDataTable<SaleTableModel>
           data={salesPage.sales}
           columns={columns}
@@ -159,7 +224,8 @@ export default function SalesPage() {
           error={salesPage.isError}
           rowKey={(row) => row.id}
         />
-      </div>
-    </section>
-  );
+      )}
+    </div>
+  </section>
+);
 }

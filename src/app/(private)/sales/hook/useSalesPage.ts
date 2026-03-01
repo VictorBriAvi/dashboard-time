@@ -9,8 +9,8 @@ const today = `${now.getFullYear()}-${String(
 ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   // 🔹 Estado editable (formulario)
-  const [fromDate, setFromDate] = useState<string>(today);
-  const [toDate, setToDate] = useState<string>(today);
+const [fromDate, setFromDate] = useState<string>("");
+const [toDate, setToDate] = useState<string>("");
   const [client, setClient] = useState<Option | null>(null);
   const [employee, setEmployee] = useState<Option | null>(null);
   const [paymentType, setPaymentType] = useState<Option | null>(null);

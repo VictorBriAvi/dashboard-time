@@ -12,6 +12,19 @@ import {
 
 export function useExpensePage() {
 
+  // ======================
+  // Helper fecha hoy (yyyy-MM-dd)
+  // ======================
+  const getToday = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const today = getToday();
+
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<Option | null>(null);
 
   // ======================
@@ -31,8 +44,8 @@ export function useExpensePage() {
   const [search, setSearch] = useState("");
   const [expenseTypeFilter, setExpenseTypeFilter] =
     useState<Option | null>(null);
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
 
   // ======================
   // Editar
@@ -47,15 +60,13 @@ export function useExpensePage() {
   // ======================
   // Queries
   // ======================
-const { data: expenses = [], isLoading, isError } = useExpenseAll(
-  search,
-  expenseTypeFilter?.value,
-  paymentTypeFilter?.value,
-  fromDate || undefined,
-  toDate || undefined
-);
-
-
+  const { data: expenses = [], isLoading, isError } = useExpenseAll(
+    search,
+    expenseTypeFilter?.value,
+    paymentTypeFilter?.value,
+    fromDate,
+    toDate
+  );
 
   // ======================
   // Mutations
@@ -164,11 +175,13 @@ const { data: expenses = [], isLoading, isError } = useExpenseAll(
   // Filtros
   // ======================
   const clearFilters = () => {
+    const today = getToday();
+
     setSearch("");
     setExpenseTypeFilter(null);
     setPaymentTypeFilter(null);
-    setFromDate("");
-    setToDate("");
+    setFromDate(today);
+    setToDate(today);
   };
 
   return {
@@ -198,7 +211,6 @@ const { data: expenses = [], isLoading, isError } = useExpenseAll(
     clearFilters,
     paymentTypeFilter,
     setPaymentTypeFilter,
-
 
     // listar
     expenses,

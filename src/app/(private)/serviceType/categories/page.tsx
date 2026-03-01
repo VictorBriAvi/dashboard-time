@@ -17,77 +17,158 @@ export default function ServiceCategoryPage() {
     },
   ];
 
-  return (
-    <section className="w-full px-6 space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl shadow-md p-6">
-        <h2 className="text-xl font-semibold">Categoría servicio</h2>
+return (
+  <section className="w-full px-6 py-6 space-y-6">
+    {/* ===== Header ===== */}
+    <div className="flex items-center justify-between bg-white rounded-2xl shadow-md p-6">
+      <div>
+        <h2 className="text-xl font-semibold text-gray-800">
+          Categorías de servicio
+        </h2>
+        <p className="text-sm text-gray-500">
+          Gestiona las categorías utilizadas en los servicios
+        </p>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-12 gap-6">
+      {/* ======================
+          Panel izquierdo (Crear categoría)
+      ====================== */}
+      <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-6">
+        <h3 className="text-sm font-medium text-gray-700">
+          Nueva categoría
+        </h3>
+
+        <Input
+          label="Nombre de la categoría"
+          value={categoryPage.name}
+          onChange={categoryPage.setName}
+          disabled={categoryPage.isCreating}
+        />
+
+        <button
+          onClick={categoryPage.addCategory}
+          disabled={categoryPage.isCreating}
+          className={`
+            w-full rounded-lg py-2.5 text-sm font-medium transition-colors
+            ${
+              categoryPage.isCreating
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black text-white hover:bg-gray-800"
+            }
+          `}
+        >
+          {categoryPage.isCreating ? "Agregando..." : "Agregar categoría"}
+        </button>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Panel izquierdo */}
-        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-4">
-          <Input
-            label="Nombre"
-            value={categoryPage.name}
-            onChange={categoryPage.setName}
-            disabled={categoryPage.isCreating}
-          />
+      {/* ======================
+          Panel derecho
+      ====================== */}
+      <div className="col-span-12 lg:col-span-9 space-y-6">
 
-          <button
-            onClick={categoryPage.addCategory}
-            disabled={categoryPage.isCreating}
-            className={`w-full rounded-md py-2 text-sm transition ${categoryPage.isCreating ? "bg-gray-400 cursor-not-allowed" : "bg-black text-white hover:bg-gray-800"}`}
+        {/* ===== Card Filtros ===== */}
+        <div className="bg-white rounded-2xl shadow-md p-6 space-y-6">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="space-y-6"
           >
-            {categoryPage.isCreating ? "Agregando..." : "Agregar categoría"}
-          </button>
+            <h3 className="text-sm font-medium text-gray-700">
+              Filtros
+            </h3>
+
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-12">
+                <Input
+                  label="Buscar categoría"
+                  value={categoryPage.search}
+                  onChange={categoryPage.setSearch}
+                  placeholder="Ej: Producción"
+                />
+              </div>
+            </div>
+
+            <div className="border-t pt-4 flex justify-start">
+              <button
+                type="button"
+                onClick={() => categoryPage.setSearch("")}
+                className="
+                  text-sm text-gray-500
+                  hover:text-gray-700
+                  transition-colors
+                "
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          </form>
         </div>
 
-        {/* Panel derecho */}
-        <div className="col-span-12 lg:col-span-9 bg-white rounded-2xl shadow-md p-6">
-          <Input
-            label="Buscar categoría"
-            value={categoryPage.search}
-            onChange={categoryPage.setSearch}
-            placeholder="Ej: Producción"
-          />
+        {/* ===== Card Tabla ===== */}
+        <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
 
-          <GenericDataTable<ServiceCategorie>
-            data={categoryPage.categories}
-            columns={columns}
-            rowKey={(row) => row.id}
-            rowActions={[
-              {
-                id: "edit",
-                label: "Editar",
-                variant: "edit",
-                visible: true,
-                onClick: (row) => {
-                  categoryPage.openEditModal(row);
-                },
-              },
-              {
-                id: "delete",
-                variant: "delete",
-                label: categoryPage.isDeleting ? "Eliminando..." : "Eliminar",
-                disabled: () => categoryPage.isDeleting,
-                onClick: (row) => {
-                  if (
-                    window.confirm(
-                      `¿Seguro que deseas eliminar la categoría "${row.name}"?`
-                    )
-                  ) {
-                    categoryPage.removeCategory(row.id);
-                  }
-                },
+          {/* Contador */}
+          {!categoryPage.isLoading && (
+            <p className="text-sm text-gray-600">
+              {categoryPage.categories.length} categoría
+              {categoryPage.categories.length !== 1 && "s"} encontrada
+              {categoryPage.categories.length !== 1 && "s"}
+            </p>
+          )}
+
+          {/* Estado vacío */}
+          {!categoryPage.isLoading &&
+          categoryPage.categories.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-sm">
+                No se encontraron categorías con los filtros seleccionados.
+              </p>
+            </div>
+          ) : (
+            <GenericDataTable<ServiceCategorie>
+              data={categoryPage.categories}
+              columns={columns}
+              loading={categoryPage.isLoading}
+              error={categoryPage.isError}
+              rowKey={(row) => row.id}
+              rowClassName={() =>
+                "cursor-pointer hover:bg-blue-100 transition-colors duration-150"
               }
-              ,
-            ]}
-          />
+              rowActions={[
+                {
+                  id: "edit",
+                  label: "Editar",
+                  variant: "edit",
+                  onClick: (row) =>
+                    categoryPage.openEditModal(row),
+                },
+                {
+                  id: "delete",
+                  variant: "delete",
+                  label: categoryPage.isDeleting
+                    ? "Eliminando..."
+                    : "Eliminar",
+                  disabled: () => categoryPage.isDeleting,
+                  onClick: (row) => {
+                    if (
+                      window.confirm(
+                        `¿Seguro que deseas eliminar la categoría "${row.name}"?`
+                      )
+                    ) {
+                      categoryPage.removeCategory(row.id);
+                    }
+                  },
+                },
+              ]}
+            />
+          )}
         </div>
       </div>
-      {/* Modal editar categoría */}
-      {categoryPage.editingCategory && (
+    </div>
+
+    {/* ===== Modal editar categoría ===== */}
+    {categoryPage.editingCategory && (
       <EditServiceCategoryModal
         category={categoryPage.editingCategory}
         isUpdating={categoryPage.isUpdating}
@@ -100,8 +181,7 @@ export default function ServiceCategoryPage() {
         onClose={() => categoryPage.setEditingCategory(null)}
         onSave={categoryPage.saveCategory}
       />
-
-      )}
-    </section>
-  );
+    )}
+  </section>
+);
 }

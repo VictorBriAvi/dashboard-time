@@ -103,7 +103,6 @@ export default function BalanceSummary() {
     toDate: dateFilter.to,
   });
 
-
   // 🔹 RESTO DE REPORTES
   const { data: barData = [] } = useEmployeeSaleSummary(
     dateFilter.from,
@@ -115,7 +114,8 @@ export default function BalanceSummary() {
     dateFilter.to,
   );
 
-  const { data: paymentData = [], isLoading: barChart } = useSalesSummaryByPayment(dateFilter.from, dateFilter.to);
+  const { data: paymentData = [], isLoading: barChart } =
+    useSalesSummaryByPayment(dateFilter.from, dateFilter.to);
 
   useSalesByDateRange(dateFilter.from, dateFilter.to);
 
@@ -142,69 +142,80 @@ export default function BalanceSummary() {
   };
 
   return (
-    <div className="pt-6">
-      {/* HEADER + FILTROS */}
-      <div className="mt-8 mb-8 px-6">
-        <div className="bg-white border rounded-2xl shadow-sm p-6 space-y-6">
-          {/* 🔹 FILA SUPERIOR - CONTEXTO + ACCIÓN */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <p className="text-sm text-gray-600">
-              Mostrando datos del{" "}
-              <span className="font-semibold text-gray-900">
-                {dateFilter.from}
-              </span>{" "}
-              al{" "}
-              <span className="font-semibold text-gray-900">
-                {dateFilter.to}
-              </span>
-            </p>
+    <div className="pt-8 space-y-10">
+      {/* ================= HEADER CONTEXTO ================= */}
+      <div className="px-6">
+        <div className="bg-white border rounded-2xl shadow-sm p-6 space-y-8">
+          {/* CONTEXTO + ACCIÓN */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-gray-400">
+                Resumen financiero
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                Mostrando datos del{" "}
+                <span className="font-semibold text-gray-900">
+                  {dateFilter.from}
+                </span>{" "}
+                al{" "}
+                <span className="font-semibold text-gray-900">
+                  {dateFilter.to}
+                </span>
+              </p>
+            </div>
 
             <button
               onClick={() => setShowAmounts((prev) => !prev)}
-              className="
-          inline-flex items-center gap-2
-          px-5 py-2.5
-          rounded-xl
-          bg-gradient-to-r from-blue-600 to-blue-500
-          text-white font-semibold
-          shadow-md shadow-blue-500/30
-          transition-all duration-200
-          hover:shadow-lg hover:scale-[1.03]
-          active:scale-[0.97]
-          focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
-        "
+className="
+  inline-flex items-center gap-2
+  px-4 py-2
+  rounded-xl
+  text-sm font-semibold
+  border border-gray-300
+  text-gray-700
+  bg-white
+  hover:border-blue-500 hover:text-blue-600
+  hover:bg-blue-50
+  transition-all duration-200
+"
             >
               {showAmounts ? "Ocultar montos" : "Mostrar montos"}
             </button>
           </div>
 
-          {/* 🔹 FILA INFERIOR - FILTROS */}
-          <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
-            {/* Fechas + buscar */}
-            <div className="flex flex-wrap items-end gap-3">
-              <input
-                type="date"
-                value={inputDesde}
-                onChange={(e) => setInputDesde(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
+          {/* ================= FILTROS ================= */}
+          <div className="border-t pt-6 flex flex-col xl:flex-row xl:items-end xl:justify-between gap-8">
+            {/* Fechas */}
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Desde</label>
+                <input
+                  type="date"
+                  value={inputDesde}
+                  onChange={(e) => setInputDesde(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
 
-              <input
-                type="date"
-                value={inputHasta}
-                onChange={(e) => setInputHasta(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Hasta</label>
+                <input
+                  type="date"
+                  value={inputHasta}
+                  onChange={(e) => setInputHasta(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
 
               <button
                 onClick={handleSearch}
                 className="
-            px-4 py-2
-            rounded-lg
-            bg-gray-900 text-white text-sm font-medium
-            hover:bg-black
-            transition
-          "
+                px-4 py-2
+                rounded-lg
+                bg-gray-900 text-white text-sm font-medium
+                hover:bg-black
+                transition
+              "
               >
                 Buscar
               </button>
@@ -244,10 +255,9 @@ export default function BalanceSummary() {
         </div>
       </div>
 
-      {/* CARDS */}
-      <div className="px-4 sm:px-6 lg:px-8 mb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* GANANCIA */}
+      {/* ================= MÉTRICAS ================= */}
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
           <SummaryCard
             title={summary?.ganancia.title}
             amount={summary?.ganancia.amount}
@@ -260,6 +270,7 @@ export default function BalanceSummary() {
             loading={isLoadingCard}
             hideAmount={!showAmounts}
           />
+
           <SummaryCard
             title={summary?.gastos.title}
             amount={summary?.gastos.amount}
@@ -271,6 +282,7 @@ export default function BalanceSummary() {
             loading={isLoadingCard}
             hideAmount={!showAmounts}
           />
+
           <SummaryCard
             title={summary?.ventas.title}
             amount={summary?.ventas.amount}
@@ -282,6 +294,7 @@ export default function BalanceSummary() {
             loading={isLoadingCard}
             hideAmount={!showAmounts}
           />
+
           <SummaryCard
             title={summary?.totalPagosColaboradores.title}
             amount={summary?.totalPagosColaboradores.amount}
@@ -296,53 +309,55 @@ export default function BalanceSummary() {
         </div>
       </div>
 
-      {/* GRÁFICOS */}
-      <div className="grid grid-cols-12 gap-6 mb-10 px-4 sm:px-6 lg:px-8">
-        <div className="col-span-12 lg:col-span-8">
-          <LineChartCustom
-            title="Evolución de ingresos y gastos"
-            data={lineChart}
-            xAxisKey="name"
-            lines={["ingresos", "gastos", "ganancias"]}
-            loading={isLoadingLineChart}
-          />
+      {/* ================= ANÁLISIS PRINCIPAL ================= */}
+      <div className="px-4 sm:px-6 lg:px-8 space-y-10">
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-12 lg:col-span-8 bg-white rounded-2xl p-6 shadow-sm">
+            <LineChartCustom
+              title="Evolución de ingresos y gastos"
+              data={lineChart}
+              xAxisKey="name"
+              lines={["ingresos", "gastos", "ganancias"]}
+              loading={isLoadingLineChart}
+            />
+          </div>
+
+          <div className="col-span-12 lg:col-span-4 bg-white rounded-2xl p-6 shadow-sm">
+            <PieChartCustomer
+              title="Distribución de Gastos"
+              data={pieData ?? []}
+              loading={pieLoading}
+            />
+          </div>
         </div>
 
-        <div className="col-span-12 lg:col-span-4">
-          <PieChartCustomer
-            title="Distribución de Gastos"
-            data={pieData ?? []}
-            loading={pieLoading}
-          />
-        </div>
-      </div>
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-12 md:col-span-6 bg-white rounded-2xl p-6 shadow-sm">
+            <BarChartCustom
+              title="Recaudación por Medio de Pago"
+              data={paymentData}
+              dataKeyName="name"
+              orientation="horizontal"
+              loading={barChart}
+              bars={[
+                { key: "ventas", label: "Ventas", color: "#3b82f6" },
+                { key: "gastos", label: "Gastos", color: "#ef4444" },
+                { key: "disponible", label: "Disponible", color: "#10b981" },
+              ]}
+            />
+          </div>
 
-      <div className="grid grid-cols-12 gap-6 px-4 sm:px-6 lg:px-8 mb-16">
-        <div className="col-span-12 md:col-span-6 bg-white rounded-2xl p-6">
-          <BarChartCustom
-            title="Recaudación por Medio de Pago"
-            data={paymentData}
-            dataKeyName="name"
-            orientation="horizontal"
-            loading={barChart}
-            bars={[
-              { key: "ventas", label: "Ventas", color: "#3b82f6" },
-              { key: "gastos", label: "Gastos", color: "#ef4444" },
-              { key: "disponible", label: "Disponible", color: "#10b981" },
-            ]}
-          />
+          <div className="col-span-12 md:col-span-6 bg-white rounded-2xl p-6 shadow-sm">
+            <BarChartCustom
+              title="Venta colaboradores"
+              data={barData}
+              dataKeyName="name"
+              dataKeyValue="value"
+              orientation="horizontal"
+              loading={barChart}
+            />
+          </div>
         </div>
-
-       <div className="col-span-12 md:col-span-6 bg-white rounded-2xl p-6">
-          <BarChartCustom
-            title="Venta colaboradores"
-            data={barData}
-            dataKeyName="name"
-            dataKeyValue="value"
-            orientation="horizontal"
-            loading={barChart}
-          />
-        </div> 
       </div>
     </div>
   );
