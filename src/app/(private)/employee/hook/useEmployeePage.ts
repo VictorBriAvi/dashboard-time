@@ -26,13 +26,12 @@ export function useEmployeePage() {
   // ======================
   // Editar
   // ======================
-  const [editingEmployee, setEditingEmployee] =
-    useState<Employee | null>(null);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   // ======================
   // Query
   // ======================
-  const { data: employees = [] } = useEmployeeAll(search);
+  const { data: employees, isLoading, isError } = useEmployeeAll(search);
 
   // ======================
   // Mutations
@@ -87,35 +86,37 @@ export function useEmployeePage() {
     setEditingEmployee(null);
   };
 
-  return {
-    // crear
-    name,
-    setName,
-    identityDocument,
-    setIdentityDocument,
-    paymentPercentage,
-    setPaymentPercentage,
-    dateBirth,
-    setDateBirth,
-    addEmployee,
-    isCreating: createEmployee.isPending,
+return {
+  // crear
+  name,
+  setName,
+  identityDocument,
+  setIdentityDocument,
+  paymentPercentage,
+  setPaymentPercentage,
+  dateBirth,
+  setDateBirth,
+  addEmployee,
+  isCreating: createEmployee.isPending,
 
-    // listar
-    employees,
+  // listar
+  employees,
+  isLoading,
+  isError,
 
-    // buscar
-    search,
-    setSearch,
+  // buscar
+  search,
+  setSearch,
 
-    // editar
-    editingEmployee,
-    setEditingEmployee,
-    openEditModal,
-    updateEmployee: updateEmployeeData,
-    isUpdating: updateEmployee.isPending,
+  // editar
+  editingEmployee,
+  setEditingEmployee,
+  openEditModal,
+  updateEmployee: updateEmployeeData,
+  isUpdating: updateEmployee.isPending,
 
-    // eliminar
-    removeEmployee,
-    isDeleting: deleteEmployee.isPending,
-  };
+  // eliminar
+  removeEmployee,
+  isDeleting: deleteEmployee.isPending,
+};
 }

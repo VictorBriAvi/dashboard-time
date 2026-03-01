@@ -33,7 +33,11 @@ export function useClientPage() {
   // ======================
   // Query
   // ======================
-  const { data: clients = [] } = useClientAll(search);
+const {
+  data: clients,
+  isLoading,
+  isError,
+} = useClientAll(search);
 
   // ======================
   // Mutations
@@ -91,38 +95,40 @@ const addClient = async () => {
     setEditingClient(null);
   };
 
-  return {
-    // crear
-    name,
-    setName,
-    identityDocument,
-    setIdentityDocument,
-    email,
-    setEmail,
-    phone,
-    setPhone,
-    dateBirth,
-    setDateBirth,
-    addClient,
-    canCreateClient,
-    isCreating: createClient.isPending,
+return {
+  // crear
+  name,
+  setName,
+  identityDocument,
+  setIdentityDocument,
+  email,
+  setEmail,
+  phone,
+  setPhone,
+  dateBirth,
+  setDateBirth,
+  addClient,
+  canCreateClient,
+  isCreating: createClient.isPending,
 
-    // listar
-    clients,
+  // listar
+  clients,
+  isLoading,
+  isError,
 
-    // buscar
-    search,
-    setSearch,
+  // buscar
+  search,
+  setSearch,
 
-    // editar
-    editingClient,
-    setEditingClient,
-    openEditModal,
-    updateClient: updateClientData,
-    isUpdating: updateClient.isPending,
+  // editar
+  editingClient,
+  setEditingClient,
+  openEditModal,
+  updateClient: updateClientData,
+  isUpdating: updateClient.isPending,
 
-    // eliminar
-    removeClient,
-    isDeleting: deleteClient.isPending,
-  };
+  // eliminar
+  removeClient,
+  isDeleting: deleteClient.isPending,
+};
 }

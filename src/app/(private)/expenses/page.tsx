@@ -214,42 +214,37 @@ return (
               </p>
             </div>
           ) : (
-            <GenericDataTable<Expense>
-              data={expensePage.expenses}
-              columns={columns}
-              loading={expensePage.isLoading}
-              error={expensePage.isError}
-              rowKey={(row) => row.id}
-              rowClassName={() =>
-                "cursor-pointer hover:bg-blue-100 transition-colors duration-150"
-              }
-              rowActions={[
-                {
-                  id: "edit",
-                  label: "Editar",
-                  variant: "edit",
-                  onClick: (row) =>
-                    expensePage.openEditModal(row),
-                },
-                {
-                  id: "delete",
-                  variant: "delete",
-                  label: expensePage.isDeleting
-                    ? "Eliminando..."
-                    : "Eliminar",
-                  disabled: () => expensePage.isDeleting,
-                  onClick: (row) => {
-                    if (
-                      window.confirm(
-                        `¿Seguro que deseas eliminar el gasto "${row.description}"?`
-                      )
-                    ) {
-                      expensePage.removeExpense(row.id);
-                    }
-                  },
-                },
-              ]}
-            />
+<GenericDataTable<Expense>
+  data={expensePage.expenses}
+  columns={columns}
+  loading={expensePage.isLoading}
+  error={expensePage.isError}
+  rowKey={(row) => row.id}
+  className="cursor-pointer hover:bg-blue-100 transition-colors duration-150"
+  rowActions={[
+    {
+      id: "edit",
+      label: "Editar",
+      variant: "edit",
+      onClick: (row) => expensePage.openEditModal(row),
+    },
+    {
+      id: "delete",
+      variant: "delete",
+      label: expensePage.isDeleting ? "Eliminando..." : "Eliminar",
+      disabled: () => expensePage.isDeleting,
+      onClick: (row) => {
+        if (
+          window.confirm(
+            `¿Seguro que deseas eliminar el gasto "${row.description}"?`
+          )
+        ) {
+          expensePage.removeExpense(row.id);
+        }
+      },
+    },
+  ]}
+/>
           )}
         </div>
       </div>

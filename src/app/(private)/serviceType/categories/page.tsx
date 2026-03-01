@@ -126,42 +126,37 @@ return (
               </p>
             </div>
           ) : (
-            <GenericDataTable<ServiceCategorie>
-              data={categoryPage.categories}
-              columns={columns}
-              loading={categoryPage.isLoading}
-              error={categoryPage.isError}
-              rowKey={(row) => row.id}
-              rowClassName={() =>
-                "cursor-pointer hover:bg-blue-100 transition-colors duration-150"
-              }
-              rowActions={[
-                {
-                  id: "edit",
-                  label: "Editar",
-                  variant: "edit",
-                  onClick: (row) =>
-                    categoryPage.openEditModal(row),
-                },
-                {
-                  id: "delete",
-                  variant: "delete",
-                  label: categoryPage.isDeleting
-                    ? "Eliminando..."
-                    : "Eliminar",
-                  disabled: () => categoryPage.isDeleting,
-                  onClick: (row) => {
-                    if (
-                      window.confirm(
-                        `¿Seguro que deseas eliminar la categoría "${row.name}"?`
-                      )
-                    ) {
-                      categoryPage.removeCategory(row.id);
-                    }
-                  },
-                },
-              ]}
-            />
+<GenericDataTable<ServiceCategorie>
+  data={categoryPage.categories}
+  columns={columns}
+  loading={categoryPage.isLoading}
+  error={categoryPage.isError}
+  rowKey={(row) => row.id}
+  className="cursor-pointer hover:bg-blue-100 transition-colors duration-150"
+  rowActions={[
+    {
+      id: "edit",
+      label: "Editar",
+      variant: "edit",
+      onClick: (row) => categoryPage.openEditModal(row),
+    },
+    {
+      id: "delete",
+      variant: "delete",
+      label: categoryPage.isDeleting ? "Eliminando..." : "Eliminar",
+      disabled: () => categoryPage.isDeleting,
+      onClick: (row) => {
+        if (
+          window.confirm(
+            `¿Seguro que deseas eliminar la categoría "${row.name}"?`
+          )
+        ) {
+          categoryPage.removeCategory(row.id);
+        }
+      },
+    },
+  ]}
+/>
           )}
         </div>
       </div>
