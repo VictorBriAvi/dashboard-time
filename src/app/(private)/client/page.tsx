@@ -6,8 +6,9 @@ import { Input } from "@/ui/inputs/Input";
 import { User, Mail, Phone, Calendar, AlertTriangle, Edit, Trash2, Plus, Search, X } from "lucide-react";
 import { Client } from "@/core/models/client/client";
 import { EditClientModal } from "./modal/EditClientModal";
-import { useClientPage } from "./hook/useClientPage";
+
 import { useAuthStore } from "@/shared/store/useAuthStore";
+import { useClientPage } from "./hook/useClientPage";
 
 export default function ClientPage() {
   const clientPage = useClientPage();
