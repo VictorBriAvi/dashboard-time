@@ -45,21 +45,24 @@ export function EditSaleModal({
     label: sale.nameClient,
   });
 
+  // ✅ FIX: null safety + filtrar detalles eliminados lógicamente
   const [details, setDetails] = useState<ServiceRow[]>(() =>
-    sale.saleDetail.map((d) => ({
-      serviceTypeId: d.serviceTypeId,
-      serviceName: d.nameServiceTypeSale,
-      employeeId: d.employeeId,
-      employeeName: d.nameEmployeeSale,
-      unitPrice: d.unitPrice,
-      discountPercent: d.discountPercent,
-      additionalCharge: d.additionalCharge,
-      total: d.totalCalculated,
-    }))
+    (sale.saleDetail ?? [])
+      .filter((d) => !d.isDeleted)
+      .map((d) => ({
+        serviceTypeId: d.serviceTypeId,
+        serviceName: d.nameServiceTypeSale,
+        employeeId: d.employeeId,
+        employeeName: d.nameEmployeeSale,
+        unitPrice: d.unitPrice,
+        discountPercent: d.discountPercent,
+        additionalCharge: d.additionalCharge,
+        total: d.totalCalculated,
+      }))
   );
 
-  // ✅ Pre-carga los pagos existentes de la venta
-  const initialPayments: PaymentItem[] = sale.payments.map((p) => ({
+  // ✅ FIX: null safety en pagos iniciales
+  const initialPayments: PaymentItem[] = (sale.payments ?? []).map((p) => ({
     paymentMethodId: p.paymentTypeId,
     paymentMethodName: p.paymentTypeName,
     amount: p.amountPaid,
