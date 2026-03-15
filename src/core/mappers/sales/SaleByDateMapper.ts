@@ -1,11 +1,9 @@
 import type { SaleDTO } from "@/data/DTO/Sale/SaleDTO";
-import type {SaleByDateRange,SaleDetail,SalePayment} from "@/core/models/reports/SaleByDateRangeModel";
+import type { SaleByDateRange, SaleDetail, SalePayment } from "@/core/models/reports/SaleByDateRangeModel";
 import { Sale } from "@/core/models/sales/Sale";
-
 
 export const saleMapper = {
   fromDto(dtos: SaleDTO[]): SaleByDateRange[] {
-
     return dtos.map((dto) => ({
       id: dto.id,
       clientId: dto.clientId,
@@ -13,7 +11,6 @@ export const saleMapper = {
       totalAmount: dto.totalAmount,
       dateSale: dto.dateSale,
       isDeleted: dto.isDeleted,
-
       saleDetail: dto.saleDetail.map<SaleDetail>((d) => ({
         id: d.id,
         serviceTypeId: d.serviceTypeId,
@@ -26,7 +23,6 @@ export const saleMapper = {
         totalCalculated: d.totalCalculated,
         isDeleted: d.isDeleted,
       })),
-
       payments: dto.payments.map<SalePayment>((p) => ({
         paymentTypeId: p.paymentTypeId,
         paymentTypeName: p.paymentTypeName,
@@ -42,11 +38,13 @@ export const saleOriginMapper = {
       id: dto.id,
       clientId: dto.clientId,
       nameClient: dto.nameClient,
+      baseAmount: dto.baseAmount,
+      surchargePercent: dto.surchargePercent,
+      surchargeAmount: dto.surchargeAmount,
       totalAmount: dto.totalAmount,
       dateSale: dto.dateSale,
       isDeleted: dto.isDeleted,
-
-      saleDetail: dto.saleDetail.map<SaleDetail>((d) => ({
+      saleDetail: dto.saleDetail.map<import("@/core/models/sales/Sale").SaleDetail>((d) => ({
         id: d.id,
         serviceTypeId: d.serviceTypeId,
         nameServiceTypeSale: d.nameServiceTypeSale,
@@ -58,11 +56,13 @@ export const saleOriginMapper = {
         totalCalculated: d.totalCalculated,
         isDeleted: d.isDeleted,
       })),
-
-      payments: dto.payments.map<SalePayment>((p) => ({
+      payments: dto.payments.map<import("@/core/models/sales/Sale").SalePayment>((p) => ({
         paymentTypeId: p.paymentTypeId,
         paymentTypeName: p.paymentTypeName,
         amountPaid: p.amountPaid,
+        appDiscountPercent: p.appDiscountPercent,
+        appDiscountAmount: p.appDiscountAmount,
+        netAmountReceived: p.netAmountReceived,
       })),
     }));
   },

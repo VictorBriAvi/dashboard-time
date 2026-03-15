@@ -8,7 +8,7 @@ export const useCreatePaymentType = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: { name: string }) =>
+    mutationFn: (payload: { name: string , applyDiscount : boolean, discountPercent : number, applySurcharge: boolean, surchargePercent: number}) =>
       paymentTypeRepository.createPaymentType(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["paymentType"] });

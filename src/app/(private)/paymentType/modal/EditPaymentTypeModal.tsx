@@ -1,19 +1,20 @@
 "use client";
 
+import { PaymentType } from "@/core/models/paymentType/PaymentType";
 import { Input } from "@/ui/inputs/Input";
 
 type Props = {
-  paymentType: { id: number; name: string };
-  isUpdating: boolean;
-  onChangeName: (value: string) => void;
-  onClose: () => void;
-  onSave: () => void;
+  paymentType: PaymentType;
+  isUpdating:  boolean;
+  onChange:    (updated: PaymentType) => void;
+  onClose:     () => void;
+  onSave:      () => void;
 };
 
 export function EditPaymentTypeModal({
   paymentType,
   isUpdating,
-  onChangeName,
+  onChange,
   onClose,
   onSave,
 }: Props) {
@@ -25,9 +26,65 @@ export function EditPaymentTypeModal({
         <Input
           label="Nombre"
           value={paymentType.name}
-          onChange={onChangeName}
+          onChange={(value) => onChange({ ...paymentType, name: value })}
           disabled={isUpdating}
         />
+
+        {/* Descuento */}
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="edit-applyDiscount"
+            checked={paymentType.applyDiscount}
+            onChange={(e) =>
+              onChange({ ...paymentType, applyDiscount: e.target.checked })
+            }
+            disabled={isUpdating}
+            className="w-4 h-4 accent-black"
+          />
+          <label htmlFor="edit-applyDiscount" className="text-sm text-gray-700">
+            Aplica descuento
+          </label>
+        </div>
+
+        {paymentType.applyDiscount && (
+          <Input
+            label="Porcentaje de descuento (%)"
+            value={String(paymentType.discountPercent)}
+            onChange={(value) =>
+              onChange({ ...paymentType, discountPercent: Number(value) })
+            }
+            disabled={isUpdating}
+          />
+        )}
+
+        {/* Recargo */}
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="edit-applySurcharge"
+            checked={paymentType.applySurcharge}
+            onChange={(e) =>
+              onChange({ ...paymentType, applySurcharge: e.target.checked })
+            }
+            disabled={isUpdating}
+            className="w-4 h-4 accent-black"
+          />
+          <label htmlFor="edit-applySurcharge" className="text-sm text-gray-700">
+            Aplica recargo
+          </label>
+        </div>
+
+        {paymentType.applySurcharge && (
+          <Input
+            label="Porcentaje de recargo (%)"
+            value={String(paymentType.surchargePercent)}
+            onChange={(value) =>
+              onChange({ ...paymentType, surchargePercent: Number(value) })
+            }
+            disabled={isUpdating}
+          />
+        )}
 
         <div className="flex justify-end gap-2 pt-4">
           <button
@@ -37,7 +94,6 @@ export function EditPaymentTypeModal({
           >
             Cancelar
           </button>
-
           <button
             onClick={onSave}
             disabled={isUpdating}

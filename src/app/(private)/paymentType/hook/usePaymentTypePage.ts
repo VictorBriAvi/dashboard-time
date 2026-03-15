@@ -14,6 +14,10 @@ export function usePaymentTypePage() {
   // States
   // ======================
   const [name, setName] = useState("");
+  const [applyDiscount, setApplyDiscount] = useState<boolean>(false);
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [applySurcharge, setApplySurcharge] = useState<boolean>(false);
+  const [surchargePercent, setSurchargePercent] = useState<number>(0);
   const [search, setSearch] = useState("");
   const [editingPaymentType, setEditingPaymentType] =
     useState<PaymentType | null>(null);
@@ -41,10 +45,16 @@ export function usePaymentTypePage() {
     if (!name.trim() || createPaymentType.isPending) return;
 
     createPaymentType.mutate(
-      { name },
+      { name, applyDiscount, discountPercent, applySurcharge, surchargePercent },
       {
-        onSuccess: () => setName(""),
-      }
+        onSuccess: () => {
+          setName("");
+          setApplyDiscount(false);
+          setDiscountPercent(0);
+          setApplySurcharge(false);
+          setSurchargePercent(0);
+        },
+      },
     );
   };
 
@@ -75,6 +85,14 @@ export function usePaymentTypePage() {
     // crear
     name,
     setName,
+    applyDiscount,
+    setApplyDiscount,
+    discountPercent,
+    setDiscountPercent,
+    applySurcharge,
+    setApplySurcharge,
+    surchargePercent,
+    setSurchargePercent,
     addPaymentType,
     isCreating: createPaymentType.isPending,
 

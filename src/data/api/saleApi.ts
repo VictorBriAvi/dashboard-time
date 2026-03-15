@@ -24,6 +24,12 @@ export const saleApi = {
     return response.data;
   },
 
+  // Agregar al objeto saleApi:
+getById: async (id: number): Promise<SaleDTO> => {
+  const response = await axios.get<SaleDTO>(`/api/sale/${id}`);
+  return response.data;
+},
+
   // 📅 GET BY DATE RANGE
   getByDateRange: async (
     fromDate: string,

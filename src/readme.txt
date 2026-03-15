@@ -1,1 +1,0 @@
-Feature-Based Clean Architecture para Next.js”

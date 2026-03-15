@@ -1,9 +1,10 @@
-// core/auth/auth.model.ts
 export interface LoginRequest {
-  username: string;
-  password: string;
+  username: string
+  password: string
 }
 
 export interface LoginResponse {
-  token: string;
+  token:     string
+  storeName: string  // ← nuevo
+  storeType: string  // ← nuevo
 }

@@ -1,52 +1,84 @@
-"use client";
+"use client"
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Menu, X, ChevronDown, LogOut } from "lucide-react";
-import Link from "next/link";
+import { useState, useRef, useEffect } from "react"
+import { useRouter }    from "next/navigation"
+import { Menu, X, ChevronDown, LogOut, Store } from "lucide-react"
+import Link             from "next/link"
+import { useAuthStore } from "@/shared/store/useAuthStore"
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-  const router = useRouter();
-  const navRef = useRef<HTMLElement>(null);
+  const [isOpen,      setIsOpen]      = useState(false)
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
+  const router  = useRouter()
+  const navRef  = useRef<HTMLElement>(null)
 
-  const toggleMenu = () => {
-    setIsOpen((prev) => !prev);
-    setOpenSubmenu(null);
-  };
+  // ── Store global ──────────────────────────────────────────────────────────
+  const { storeName, storeType, vocab } = useAuthStore()
 
-  const toggleSubmenu = (key: string) => {
-    setOpenSubmenu((prev) => (prev === key ? null : key));
-  };
-
-  const closeAll = () => {
-    setIsOpen(false);
-    setOpenSubmenu(null);
-  };
+  const toggleMenu    = () => { setIsOpen((p) => !p); setOpenSubmenu(null) }
+  const toggleSubmenu = (key: string) =>
+    setOpenSubmenu((p) => (p === key ? null : key))
+  const closeAll = () => { setIsOpen(false); setOpenSubmenu(null) }
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/logout", { method: "POST" });
-      closeAll();
-      router.push("/login");
-      router.refresh();
+      await fetch("/api/logout", { method: "POST" })
+      useAuthStore.getState().clear()
+      closeAll()
+      router.push("/login")
+      router.refresh()
     } catch (error) {
-      console.error("Error al cerrar sesión", error);
+      console.error("Error al cerrar sesión", error)
     }
-  };
+  }
 
-  // 🔥 Cerrar al hacer click fuera
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(event.target as Node)) {
-        closeAll();
-      }
-    };
+    const handleClickOutside = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node))
+        closeAll()
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // ── Definición dinámica del menú ──────────────────────────────────────────
+  const navItems = [
+    {
+      key:   "sales",
+      label: `${vocab.sale}s`,
+      href:  "/sales",
+    },
+    {
+      key:   "services",
+      label: `${vocab.service}s`,
+      href:  "/serviceType",
+      sub:   [{ label: vocab.serviceCategory, href: "/serviceType/categories" }],
+    },
+    {
+      key:   "expenses",
+      label: `${vocab.expense}s`,
+      href:  "/expenses",
+      sub:   [{ label: vocab.expenseCategory, href: "/expenses/expensesCategorie" }],
+    },
+    {
+      key:   "client",
+      label: `${vocab.client}s`,
+      href:  "/client",
+    },
+    {
+      key:   "payment-types",
+      label: vocab.paymentType,
+      href:  "/paymentType",
+    },
+    // Ocultamos "Empleados" si el storeType es personal
+    ...(storeType !== "personal"
+      ? [{
+          key:   "employees",
+          label: `${vocab.employee}s`,
+          href:  "/employee",
+        }]
+      : []),
+  ]
 
   return (
     <header
@@ -56,94 +88,57 @@ export default function Navbar() {
       <nav className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
 
+          {/* ── Logo / Store name ────────────────────────────────────────── */}
           <Link
             href="/"
             onClick={closeAll}
-            className="text-xl font-semibold tracking-tight text-blue-600 hover:opacity-80 transition"
+            className="flex items-center gap-2 text-xl font-semibold tracking-tight text-blue-600 hover:opacity-80 transition"
           >
-            Time for <span className="text-gray-800">You</span>
+            <Store size={20} />
+            <span className="text-gray-800">
+              {storeName || "Time for You"}
+            </span>
           </Link>
 
-          {/* ===== Desktop ===== */}
+          {/* ── Desktop ──────────────────────────────────────────────────── */}
           <div className="hidden md:flex items-center gap-7">
-
-            <Link href="/sales" onClick={closeAll} className="nav-link">
-              Venta
-            </Link>
-
-            {/* Servicios */}
-            <div className="relative">
-              <div className="flex items-center gap-1">
-                <Link
-                  href="/serviceType"
-                  onClick={closeAll}
-                  className="nav-link"
-                >
-                  Servicios
-                </Link>
-                <button
-                  onClick={() => toggleSubmenu("services")}
-                  className="icon-btn"
-                >
-                  <ChevronDown size={15} />
-                </button>
-              </div>
-
-              {openSubmenu === "services" && (
-                <div className="submenu">
+            {navItems.map((item) => (
+              <div key={item.key} className="relative">
+                <div className="flex items-center gap-1">
                   <Link
-                    href="/serviceType/categories"
+                    href={item.href}
                     onClick={closeAll}
-                    className="submenu-item"
+                    className="nav-link"
                   >
-                    Categorías Servicio
+                    {item.label}
                   </Link>
-                </div>
-              )}
-            </div>
 
-            {/* Gastos */}
-            <div className="relative">
-              <div className="flex items-center gap-1">
-                <Link
-                  href="/expenses"
-                  onClick={closeAll}
-                  className="nav-link"
-                >
-                  Gastos
-                </Link>
-                <button
-                  onClick={() => toggleSubmenu("expenses")}
-                  className="icon-btn"
-                >
-                  <ChevronDown size={15} />
-                </button>
+                  {item.sub && (
+                    <button
+                      onClick={() => toggleSubmenu(item.key)}
+                      className="icon-btn"
+                    >
+                      <ChevronDown size={15} />
+                    </button>
+                  )}
+                </div>
+
+                {item.sub && openSubmenu === item.key && (
+                  <div className="submenu">
+                    {item.sub.map((s) => (
+                      <Link
+                        key={s.href}
+                        href={s.href}
+                        onClick={closeAll}
+                        className="submenu-item"
+                      >
+                        {s.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {openSubmenu === "expenses" && (
-                <div className="submenu">
-                  <Link
-                    href="/expenses/expensesCategorie"
-                    onClick={closeAll}
-                    className="submenu-item"
-                  >
-                    Categorías Gasto
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <Link href="/client" onClick={closeAll} className="nav-link">
-              Clientes
-            </Link>
-
-            <Link href="/paymentType" onClick={closeAll} className="nav-link">
-              Tipos de pago
-            </Link>
-
-            <Link href="/employee" onClick={closeAll} className="nav-link">
-              Colaboradores
-            </Link>
+            ))}
 
             <button onClick={handleLogout} className="logout-btn">
               <LogOut size={15} />
@@ -151,7 +146,7 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* ===== Mobile Button ===== */}
+          {/* ── Mobile Button ────────────────────────────────────────────── */}
           <div className="md:hidden">
             <button onClick={toggleMenu} className="icon-btn">
               {isOpen ? <X size={22} /> : <Menu size={22} />}
@@ -159,27 +154,10 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* ===== Mobile ===== */}
+        {/* ── Mobile Menu ──────────────────────────────────────────────────── */}
         {isOpen && (
           <div className="md:hidden bg-white border-t border-gray-200 py-3 rounded-b-xl shadow-xl">
-            {[
-              { key: "sales", label: "Venta", href: "/sales" },
-              {
-                key: "services",
-                label: "Servicios",
-                href: "/serviceType",
-                sub: [{ label: "Categorías", href: "/serviceType/categories" }],
-              },
-              {
-                key: "expenses",
-                label: "Gastos",
-                href: "/expenses",
-                sub: [{ label: "Categorías", href: "/expenses/expensesCategorie" }],
-              },
-              { key: "client", label: "Clientes", href: "/client" },
-              { key: "payment-types", label: "Tipos de pago", href: "/paymentType" },
-              { key: "employees", label: "Colaboradores", href: "/employee" },
-            ].map((item) => (
+            {navItems.map((item) => (
               <div key={item.key}>
                 <div className="flex justify-between items-center px-5 py-2">
                   <Link
@@ -235,11 +213,7 @@ export default function Navbar() {
           padding: 4px 0;
           transition: all 0.2s ease;
         }
-
-        .nav-link:hover {
-          color: #1f2937;
-        }
-
+        .nav-link:hover { color: #1f2937; }
         .nav-link::after {
           content: "";
           position: absolute;
@@ -250,10 +224,7 @@ export default function Navbar() {
           background: linear-gradient(to right, #2563eb, #3b82f6);
           transition: width 0.25s ease;
         }
-
-        .nav-link:hover::after {
-          width: 100%;
-        }
+        .nav-link:hover::after { width: 100%; }
 
         .submenu {
           position: absolute;
@@ -263,12 +234,11 @@ export default function Navbar() {
           background: white;
           border-radius: 12px;
           border: 1px solid #e5e7eb;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.08);
           min-width: 220px;
           padding: 8px;
           animation: fadeIn 0.15s ease-out;
         }
-
         .submenu-item {
           display: block;
           padding: 8px 12px;
@@ -278,21 +248,14 @@ export default function Navbar() {
           color: #374151;
           transition: all 0.2s ease;
         }
-
-        .submenu-item:hover {
-          background: #eff6ff;
-          color: #1d4ed8;
-        }
+        .submenu-item:hover { background: #eff6ff; color: #1d4ed8; }
 
         .icon-btn {
           padding: 6px;
           border-radius: 8px;
           transition: background 0.2s ease;
         }
-
-        .icon-btn:hover {
-          background: #f3f4f6;
-        }
+        .icon-btn:hover { background: #f3f4f6; }
 
         .logout-btn {
           display: flex;
@@ -305,20 +268,14 @@ export default function Navbar() {
           color: #dc2626;
           transition: all 0.2s ease;
         }
-
-        .logout-btn:hover {
-          background: #fee2e2;
-        }
+        .logout-btn:hover { background: #fee2e2; }
 
         .mobile-link {
           font-weight: 500;
           color: #374151;
           transition: color 0.2s ease;
         }
-
-        .mobile-link:hover {
-          color: #2563eb;
-        }
+        .mobile-link:hover { color: #2563eb; }
 
         .mobile-logout {
           display: flex;
@@ -328,22 +285,13 @@ export default function Navbar() {
           color: #dc2626;
           transition: opacity 0.2s ease;
         }
-
-        .mobile-logout:hover {
-          opacity: 0.8;
-        }
+        .mobile-logout:hover { opacity: 0.8; }
 
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(6px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </header>
-  );
+  )
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { paymentTypeRepository } from "@/data/repositories/paymentTypeRepository";
-import type { Option } from "@/ui/inputs/SearchSelect";
-import { PaymentType } from "@/core/models/paymentType/PaymentType";
+import { PaymentType, PaymentTypeOption } from "@/core/models/paymentType/PaymentType";
 import { useQuery } from "@tanstack/react-query";
 
 export const usePaymentTypeAll = (search: string) => {
@@ -10,7 +9,6 @@ export const usePaymentTypeAll = (search: string) => {
     queryKey: ["paymentType", search],
     queryFn: () => paymentTypeRepository.AllPaymentType(search),
     staleTime: 1000 * 60 * 5,
-    
     placeholderData: (previousData) => previousData,
   });
 
@@ -19,21 +17,21 @@ export const usePaymentTypeAll = (search: string) => {
     isLoading: result.isLoading,
     isError: result.isError,
     error: result.error,
-
   };
 };
 
 export function usePaymentTypeAllSearch() {
-  const loadPaymentTypeSearch = async (input: string): Promise<Option[]> => {
-    const categories = await paymentTypeRepository.AllPaymentType(input);
-
-    return categories.map((c) => ({
-      value: c.id,
-      label: c.name,
+  const loadPaymentTypeSearch = async (input: string): Promise<PaymentTypeOption[]> => {
+    const types = await paymentTypeRepository.AllPaymentType(input);
+    return types.map((t) => ({
+      value: t.id,
+      label: t.name,
+      applyDiscount: t.applyDiscount,
+      discountPercent: t.discountPercent,
+      applySurcharge: t.applySurcharge,
+      surchargePercent: t.surchargePercent,
     }));
   };
 
-  return {
-    loadPaymentTypeSearch,
-  };
+  return { loadPaymentTypeSearch };
 }

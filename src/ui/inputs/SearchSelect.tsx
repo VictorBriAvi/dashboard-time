@@ -7,28 +7,28 @@ export interface Option {
   label: string;
 }
 
-interface AsyncSearchableSelectProps {
+interface AsyncSearchableSelectProps<T extends Option> {
   id?: string;
   label: string;
-  loadOptions: (input: string) => Promise<Option[]>;
-  value?: Option | null;
-  onChange?: (option: Option | null) => void;
+  loadOptions: (input: string) => Promise<T[]>;
+  value?: T | null;
+  onChange?: (option: T | null) => void;
 }
 
-export function AsyncSearchableSelect({
+export function AsyncSearchableSelect<T extends Option>({
   id,
   label,
   loadOptions,
   value,
   onChange,
-}: AsyncSearchableSelectProps) {
+}: AsyncSearchableSelectProps<T>) {
   const [input, setInput] = useState("");
-  const [options, setOptions] = useState<Option[]>([]);
+  const [options, setOptions] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  /** 🔄 Sync valor externo */
+  // Sync valor externo
   useEffect(() => {
     if (value) {
       setInput(value.label);
@@ -57,18 +57,15 @@ export function AsyncSearchableSelect({
     fetchOptions();
   }, [input, loadOptions]);
 
-  const selectOption = (option: Option) => {
+  const selectOption = (option: T) => {
     setInput(option.label);
     setOpen(false);
-    onChange?.(option);
+    onChange?.(option); // devuelve T completo, no solo { value, label }
   };
 
   return (
     <div className="relative flex flex-col gap-1.5">
-      <label
-        htmlFor={id}
-        className="text-sm font-semibold text-gray-800"
-      >
+      <label htmlFor={id} className="text-sm font-semibold text-gray-800">
         {label}
       </label>
 
@@ -84,28 +81,18 @@ export function AsyncSearchableSelect({
         onFocus={() => setOpen(true)}
         onKeyDown={(e) => {
           if (!open) return;
-
           switch (e.key) {
             case "ArrowDown":
               e.preventDefault();
-              setHighlightedIndex((prev) =>
-                Math.min(prev + 1, options.length - 1)
-              );
+              setHighlightedIndex((prev) => Math.min(prev + 1, options.length - 1));
               break;
-
             case "ArrowUp":
               e.preventDefault();
-              setHighlightedIndex((prev) =>
-                Math.max(prev - 1, 0)
-              );
+              setHighlightedIndex((prev) => Math.max(prev - 1, 0));
               break;
-
             case "Enter":
-              if (highlightedIndex >= 0) {
-                selectOption(options[highlightedIndex]);
-              }
+              if (highlightedIndex >= 0) selectOption(options[highlightedIndex]);
               break;
-
             case "Escape":
               setOpen(false);
               break;
@@ -113,12 +100,9 @@ export function AsyncSearchableSelect({
         }}
         className="
           w-full rounded-md border px-3 py-2 text-sm
-          transition-all
-          border-gray-300 text-gray-900
+          transition-all border-gray-300 text-gray-900
           placeholder:text-gray-400
-          focus:outline-none
-          focus:border-blue-500
-          focus:ring-2 focus:ring-blue-500/20
+          focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
         "
       />
 
@@ -129,15 +113,11 @@ export function AsyncSearchableSelect({
           max-h-48 overflow-auto
         ">
           {loading && (
-            <div className="px-3 py-2 text-sm text-gray-500">
-              Buscando…
-            </div>
+            <div className="px-3 py-2 text-sm text-gray-500">Buscando…</div>
           )}
 
           {!loading && options.length === 0 && (
-            <div className="px-3 py-2 text-sm text-gray-500">
-              Sin resultados
-            </div>
+            <div className="px-3 py-2 text-sm text-gray-500">Sin resultados</div>
           )}
 
           {!loading &&
@@ -145,13 +125,8 @@ export function AsyncSearchableSelect({
               <div
                 key={option.value}
                 className={`
-                  px-3 py-2 text-sm cursor-pointer
-                  transition-colors
-                  ${
-                    index === highlightedIndex
-                      ? "bg-blue-50 text-blue-700"
-                      : "hover:bg-gray-100"
-                  }
+                  px-3 py-2 text-sm cursor-pointer transition-colors
+                  ${index === highlightedIndex ? "bg-blue-50 text-blue-700" : "hover:bg-gray-100"}
                 `}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 onClick={() => selectOption(option)}
