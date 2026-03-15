@@ -54,6 +54,13 @@ export function usePaymentTypePage() {
           setApplySurcharge(false);
           setSurchargePercent(0);
         },
+        // ✅ FIX: onError agregado
+        onError: (error: any) => {
+          const msg =
+            error?.response?.data?.message ??
+            "Error al crear el medio de pago. Intentá de nuevo.";
+          alert(msg);
+        },
       },
     );
   };
@@ -63,7 +70,15 @@ export function usePaymentTypePage() {
   // ======================
   const removePaymentType = (id: number) => {
     if (deletePaymentType.isPending) return;
-    deletePaymentType.mutate(id);
+    deletePaymentType.mutate(id, {
+      // ✅ FIX: onError agregado
+      onError: (error: any) => {
+        const msg =
+          error?.response?.data?.message ??
+          "Error al eliminar el medio de pago. Intentá de nuevo.";
+        alert(msg);
+      },
+    });
   };
 
   // ======================
@@ -78,6 +93,13 @@ export function usePaymentTypePage() {
 
     updatePaymentType.mutate(editingPaymentType, {
       onSuccess: () => setEditingPaymentType(null),
+      // ✅ FIX: onError agregado — antes el error se tragaba en silencio
+      onError: (error: any) => {
+        const msg =
+          error?.response?.data?.message ??
+          "Error al guardar el medio de pago. Intentá de nuevo.";
+        alert(msg);
+      },
     });
   };
 

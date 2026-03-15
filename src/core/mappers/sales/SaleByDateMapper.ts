@@ -11,7 +11,8 @@ export const saleMapper = {
       totalAmount: dto.totalAmount,
       dateSale: dto.dateSale,
       isDeleted: dto.isDeleted,
-      saleDetail: dto.saleDetail.map<SaleDetail>((d) => ({
+      // ✅ FIX: null safety — evita crash si el backend devuelve null
+      saleDetail: (dto.saleDetail ?? []).map<SaleDetail>((d) => ({
         id: d.id,
         serviceTypeId: d.serviceTypeId,
         nameServiceTypeSale: d.nameServiceTypeSale,
@@ -23,7 +24,7 @@ export const saleMapper = {
         totalCalculated: d.totalCalculated,
         isDeleted: d.isDeleted,
       })),
-      payments: dto.payments.map<SalePayment>((p) => ({
+      payments: (dto.payments ?? []).map<SalePayment>((p) => ({
         paymentTypeId: p.paymentTypeId,
         paymentTypeName: p.paymentTypeName,
         amountPaid: p.amountPaid,
@@ -44,7 +45,8 @@ export const saleOriginMapper = {
       totalAmount: dto.totalAmount,
       dateSale: dto.dateSale,
       isDeleted: dto.isDeleted,
-      saleDetail: dto.saleDetail.map<import("@/core/models/sales/Sale").SaleDetail>((d) => ({
+      // ✅ FIX: null safety — evita crash si el backend devuelve null
+      saleDetail: (dto.saleDetail ?? []).map<import("@/core/models/sales/Sale").SaleDetail>((d) => ({
         id: d.id,
         serviceTypeId: d.serviceTypeId,
         nameServiceTypeSale: d.nameServiceTypeSale,
@@ -56,7 +58,7 @@ export const saleOriginMapper = {
         totalCalculated: d.totalCalculated,
         isDeleted: d.isDeleted,
       })),
-      payments: dto.payments.map<import("@/core/models/sales/Sale").SalePayment>((p) => ({
+      payments: (dto.payments ?? []).map<import("@/core/models/sales/Sale").SalePayment>((p) => ({
         paymentTypeId: p.paymentTypeId,
         paymentTypeName: p.paymentTypeName,
         amountPaid: p.amountPaid,

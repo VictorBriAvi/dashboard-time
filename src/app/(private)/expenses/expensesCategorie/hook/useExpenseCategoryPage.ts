@@ -45,13 +45,28 @@ export function useExpenseCategoryPage() {
       { name },
       {
         onSuccess: () => setName(""),
+        // ✅ FIX: onError agregado
+        onError: (error: any) => {
+          const msg =
+            error?.response?.data?.message ??
+            "Error al crear la categoría de gasto. Intentá de nuevo.";
+          alert(msg);
+        },
       }
     );
   };
 
   const removeCategory = (id: number) => {
     if (deleteCategory.isPending) return;
-    deleteCategory.mutate(id);
+    deleteCategory.mutate(id, {
+      // ✅ FIX: onError agregado
+      onError: (error: any) => {
+        const msg =
+          error?.response?.data?.message ??
+          "Error al eliminar la categoría de gasto. Intentá de nuevo.";
+        alert(msg);
+      },
+    });
   };
 
   const openEditModal = (category: ExpenseCategorie) => {
@@ -63,6 +78,13 @@ export function useExpenseCategoryPage() {
 
     updateCategory.mutate(editingCategory, {
       onSuccess: () => setEditingCategory(null),
+      // ✅ FIX: onError agregado — antes el error se tragaba en silencio
+      onError: (error: any) => {
+        const msg =
+          error?.response?.data?.message ??
+          "Error al guardar la categoría de gasto. Intentá de nuevo.";
+        alert(msg);
+      },
     });
   };
 

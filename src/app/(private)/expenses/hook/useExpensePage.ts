@@ -114,6 +114,13 @@ export function useExpensePage() {
           setPaymentTypeSelected(null);
           setExpenseDate("");
         },
+        // ✅ FIX: onError agregado
+        onError: (error: any) => {
+          const msg =
+            error?.response?.data?.message ??
+            "Error al crear el gasto. Intentá de nuevo.";
+          alert(msg);
+        },
       }
     );
   };
@@ -159,6 +166,13 @@ export function useExpensePage() {
       },
       {
         onSuccess: () => setEditingExpense(null),
+        // ✅ FIX: onError agregado — antes el error se tragaba en silencio
+        onError: (error: any) => {
+          const msg =
+            error?.response?.data?.message ??
+            "Error al guardar el gasto. Intentá de nuevo.";
+          alert(msg);
+        },
       }
     );
   };
@@ -168,7 +182,15 @@ export function useExpensePage() {
   // ======================
   const removeExpense = (id: number) => {
     if (deleteExpense.isPending) return;
-    deleteExpense.mutate(id);
+    deleteExpense.mutate(id, {
+      // ✅ FIX: onError agregado
+      onError: (error: any) => {
+        const msg =
+          error?.response?.data?.message ??
+          "Error al eliminar el gasto. Intentá de nuevo.";
+        alert(msg);
+      },
+    });
   };
 
   // ======================

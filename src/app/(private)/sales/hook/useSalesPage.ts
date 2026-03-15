@@ -83,7 +83,16 @@ export function useSalesPage() {
     if (!editingSaleId) return;
     updateSale.mutate(
       { id: editingSaleId, payload },
-      { onSuccess: () => setEditingSaleId(null) }
+      {
+        onSuccess: () => setEditingSaleId(null),
+        // ✅ FIX: onError agregado — antes los errores se tragaban en silencio
+        onError: (error: any) => {
+          const msg =
+            error?.response?.data?.message ??
+            "Error al guardar la venta. Revisá los datos e intentá de nuevo.";
+          alert(msg);
+        },
+      }
     );
   };
 

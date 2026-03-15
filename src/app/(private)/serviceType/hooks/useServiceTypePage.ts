@@ -71,6 +71,13 @@ export function useServiceTypePage() {
         setPrice("");
         setCategorySelected(null);
       },
+      // ✅ FIX: onError agregado
+      onError: (error: any) => {
+        const msg =
+          error?.response?.data?.message ??
+          "Error al crear el servicio. Intentá de nuevo.";
+        alert(msg);
+      },
     });
   };
 
@@ -99,6 +106,13 @@ export function useServiceTypePage() {
 
     updateService.mutate(payload, {
       onSuccess: () => setEditingService(null),
+      // ✅ FIX: onError agregado — antes el error se tragaba en silencio
+      onError: (error: any) => {
+        const msg =
+          error?.response?.data?.message ??
+          "Error al guardar el servicio. Intentá de nuevo.";
+        alert(msg);
+      },
     });
   };
 
@@ -106,7 +120,15 @@ export function useServiceTypePage() {
   // Delete
   // ======================
   const removeService = (id: number) => {
-    deleteService.mutate(id);
+    deleteService.mutate(id, {
+      // ✅ FIX: onError agregado
+      onError: (error: any) => {
+        const msg =
+          error?.response?.data?.message ??
+          "Error al eliminar el servicio. Intentá de nuevo.";
+        alert(msg);
+      },
+    });
   };
 
   return {

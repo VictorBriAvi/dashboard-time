@@ -52,24 +52,38 @@ export function useEmployeePage() {
     )
       return;
 
-    await createEmployee.mutateAsync({
-      name,
-      identityDocument,
-      paymentPercentage: Number(paymentPercentage),
-      dateBirth,
-    });
+    try {
+      await createEmployee.mutateAsync({
+        name,
+        identityDocument,
+        paymentPercentage: Number(paymentPercentage),
+        dateBirth,
+      });
 
-    setName("");
-    setIdentityDocument("");
-    setPaymentPercentage("");
-    setDateBirth("");
+      setName("");
+      setIdentityDocument("");
+      setPaymentPercentage("");
+      setDateBirth("");
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ??
+        "Error al crear el colaborador. Intentá de nuevo.";
+      alert(msg);
+    }
   };
 
   // ======================
   // Eliminar
   // ======================
   const removeEmployee = async (id: number) => {
-    await deleteEmployee.mutateAsync(id);
+    try {
+      await deleteEmployee.mutateAsync(id);
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ??
+        "Error al eliminar el colaborador. Intentá de nuevo.";
+      alert(msg);
+    }
   };
 
   // ======================
@@ -82,41 +96,49 @@ export function useEmployeePage() {
   const updateEmployeeData = async () => {
     if (!editingEmployee) return;
 
-    await updateEmployee.mutateAsync(editingEmployee);
-    setEditingEmployee(null);
+    // ✅ FIX: try/catch agregado — antes los errores de mutateAsync no se manejaban
+    try {
+      await updateEmployee.mutateAsync(editingEmployee);
+      setEditingEmployee(null);
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ??
+        "Error al guardar el colaborador. Intentá de nuevo.";
+      alert(msg);
+    }
   };
 
-return {
-  // crear
-  name,
-  setName,
-  identityDocument,
-  setIdentityDocument,
-  paymentPercentage,
-  setPaymentPercentage,
-  dateBirth,
-  setDateBirth,
-  addEmployee,
-  isCreating: createEmployee.isPending,
+  return {
+    // crear
+    name,
+    setName,
+    identityDocument,
+    setIdentityDocument,
+    paymentPercentage,
+    setPaymentPercentage,
+    dateBirth,
+    setDateBirth,
+    addEmployee,
+    isCreating: createEmployee.isPending,
 
-  // listar
-  employees,
-  isLoading,
-  isError,
+    // listar
+    employees,
+    isLoading,
+    isError,
 
-  // buscar
-  search,
-  setSearch,
+    // buscar
+    search,
+    setSearch,
 
-  // editar
-  editingEmployee,
-  setEditingEmployee,
-  openEditModal,
-  updateEmployee: updateEmployeeData,
-  isUpdating: updateEmployee.isPending,
+    // editar
+    editingEmployee,
+    setEditingEmployee,
+    openEditModal,
+    updateEmployee: updateEmployeeData,
+    isUpdating: updateEmployee.isPending,
 
-  // eliminar
-  removeEmployee,
-  isDeleting: deleteEmployee.isPending,
-};
+    // eliminar
+    removeEmployee,
+    isDeleting: deleteEmployee.isPending,
+  };
 }

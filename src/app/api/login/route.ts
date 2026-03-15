@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     console.log("→ Login body:", body)
 
     const response = await axiosClient.post("/auth/login", body)
-    console.log("→ Backend response:", response.data)   // ← ¿qué llega exactamente?
+    console.log("→ Backend response:", response.data)
 
     const { token, storeName, storeType } = response.data
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     const decoded = decodeJwt(token)
-    console.log("→ JWT decoded:", decoded)              // ← confirmar claims
+    console.log("→ JWT decoded:", decoded)
 
     if (!decoded?.exp) {
       return NextResponse.json({ message: "Token inválido" }, { status: 500 })
@@ -35,8 +35,9 @@ export async function POST(request: Request) {
     const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ?? "User"
     const storeId = Number(decoded.storeId ?? 0)
 
+    // ✅ FIX: secure: true en producción (Vercel usa HTTPS)
     const baseConfig = {
-      secure:   false,                    // ← false en dev, localhost no es HTTPS para cookies
+      secure:   process.env.NODE_ENV === "production",
       sameSite: "lax" as const,
       path:     "/",
       expires:  cookieExpiry,
