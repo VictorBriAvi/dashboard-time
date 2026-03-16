@@ -2,7 +2,7 @@
 
 import { Sale } from "@/core/models/sales/Sale";
 import { formatARS } from "@/core/utils/format";
-import { Modal } from "@/ui/Modals";
+import { Modal } from "@/ui/Modals"; // ✅ sin 's'
 
 type Props = {
   sale: Sale;
