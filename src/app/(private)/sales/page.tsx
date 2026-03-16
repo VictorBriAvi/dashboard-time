@@ -1,302 +1,217 @@
 "use client";
 
-import { useState } from "react";
-import { AsyncSearchableSelect, Option } from "@/ui/inputs/SearchSelect";
-import { PaymentModal } from "@/ui/sales/Modals/PaymentModal";
-import { PaymentItem } from "@/ui/sales/Modals/Hook/usePaymentModal";
-import GenericDataTable from "@/ui/dataTable/GenericDataTable";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
+import { SaleTableModel } from "@/core/models/sales/SaleTableModel";
 import { formatARS } from "@/core/utils/format";
-import { Sale } from "@/core/models/sales/Sale";
-import { CreateSaleDraft } from "@/core/models/sales/CreateSaleDraft";
+import { useSalesPage } from "./hook/useSalesPage";
+import { useClientSearch } from "@/data/hooks/client/useClientSearch";
+import { useEmployeeSearch } from "@/data/hooks/employee/useEmployeeSearch";
+import { useServiceTypeSearch } from "@/data/hooks/serviceType/useServiceTypeSearch";
+import { usePaymentTypeAllSearch } from "@/data/hooks/paymentType/usePaymentType";
+import { useAuthStore } from "@/shared/store/useAuthStore";
+import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { PageLayout, ContentCard, FilterBar, Btn } from "@/ui/PageLayout";
+import { Input } from "@/ui/inputs/Input";
+import { AsyncSearchableSelect } from "@/ui/inputs/SearchSelect";
+import { EditSaleModal } from "@/ui/sales/EditSaleModal";
+import { SaleDetailModal } from "@/ui/sales/Modals/SaleDetailModal";
 
-type ServiceRow = {
-  serviceTypeId: number;
-  serviceName: string;
-  employeeId: number;
-  employeeName: string;
-  unitPrice: number;
-  discountPercent: number;
-  additionalCharge: number;
-  total: number;
-};
+export default function SalesPage() {
+  const page = useSalesPage();
+  const { vocab } = useAuthStore();
+  const { loadClients }           = useClientSearch();
+  const { loadEmployees }         = useEmployeeSearch();
+  const { loadServiceType }       = useServiceTypeSearch();
+  const { loadPaymentTypeSearch } = usePaymentTypeAllSearch();
 
-type Props = {
-  sale: Sale;
-  isUpdating: boolean;
-  loadClients: (input: string) => Promise<Option[]>;
-  loadEmployees: (input: string) => Promise<Option[]>;
-  loadServiceTypes: (input: string) => Promise<Option[]>;
-  onSave: (payload: CreateSaleDraft) => void;
-  onClose: () => void;
-};
-
-export function EditSaleModal({
-  sale,
-  isUpdating,
-  loadClients,
-  loadEmployees,
-  loadServiceTypes,
-  onSave,
-  onClose,
-}: Props) {
-
-  // ─── DEBUG: ver qué llega desde el backend al abrir el modal ──────────────
-  console.log("📦 [EditSaleModal] sale recibido:", JSON.stringify(sale, null, 2));
-  console.log("📦 [EditSaleModal] saleDetail count:", sale?.saleDetail?.length ?? "UNDEFINED/NULL");
-  console.log("📦 [EditSaleModal] payments count:", sale?.payments?.length ?? "UNDEFINED/NULL");
-  if (sale?.saleDetail) {
-    sale.saleDetail.forEach((d, i) =>
-      console.log(`  detail[${i}] isDeleted=${d.isDeleted} serviceTypeId=${d.serviceTypeId}`)
-    );
-  }
-
-  const [client, setClient] = useState<Option | null>({
-    value: sale.clientId,
-    label: sale.nameClient,
-  });
-
-  // ✅ FIX: null safety + filtrar detalles eliminados
-  const [details, setDetails] = useState<ServiceRow[]>(() => {
-    const raw = sale.saleDetail ?? [];
-    const active = raw.filter((d) => !d.isDeleted);
-    console.log("📦 [EditSaleModal] detalles activos (no eliminados):", active.length, "de", raw.length, "totales");
-    return active.map((d) => ({
-      serviceTypeId: d.serviceTypeId,
-      serviceName: d.nameServiceTypeSale,
-      employeeId: d.employeeId,
-      employeeName: d.nameEmployeeSale,
-      unitPrice: d.unitPrice,
-      discountPercent: d.discountPercent,
-      additionalCharge: d.additionalCharge,
-      total: d.totalCalculated,
-    }));
-  });
-
-  // ✅ FIX: null safety en pagos iniciales
-  const initialPayments: PaymentItem[] = (sale.payments ?? []).map((p) => ({
-    paymentMethodId: p.paymentTypeId,
-    paymentMethodName: p.paymentTypeName,
-    amount: p.amountPaid,
-  }));
-
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-
-  const [serviceSelected, setServiceSelected] = useState<(Option & { price?: number }) | null>(null);
-  const [employeeSelected, setEmployeeSelected] = useState<Option | null>(null);
-  const [discountPercent, setDiscountPercent] = useState(0);
-  const [additionalCharge, setAdditionalCharge] = useState(0);
-
-  const saleTotal = details.reduce((acc, d) => acc + d.total, 0);
-
-  const addDetail = () => {
-    if (!serviceSelected || !employeeSelected) return;
-    const price = serviceSelected.price ?? 0;
-    const total = (price + additionalCharge) * (1 - discountPercent / 100);
-
-    setDetails((prev) => [
-      ...prev,
-      {
-        serviceTypeId: serviceSelected.value,
-        serviceName: serviceSelected.label,
-        employeeId: employeeSelected.value,
-        employeeName: employeeSelected.label,
-        unitPrice: price,
-        discountPercent,
-        additionalCharge,
-        total,
-      },
-    ]);
-
-    setServiceSelected(null);
-    setEmployeeSelected(null);
-    setDiscountPercent(0);
-    setAdditionalCharge(0);
-  };
-
-  const removeDetail = (index: number) =>
-    setDetails((prev) => prev.filter((_, i) => i !== index));
-
-  const handleConfirmPayments = (payments: PaymentItem[]) => {
-    if (!client) {
-      console.error("❌ [EditSaleModal] No hay cliente seleccionado");
-      return;
-    }
-
-    const payload: CreateSaleDraft = {
-      clientId: client.value,
-      saleDetails: details.map(({
-        serviceTypeId,
-        employeeId,
-        unitPrice,
-        discountPercent,
-        additionalCharge,
-        total,
-      }) => ({
-        serviceTypeId,
-        employeeId,
-        unitPrice,
-        discountPercent,
-        additionalCharge,
-        total,
-      })),
-      payments: payments.map((p) => ({
-        paymentTypeId: p.paymentMethodId,
-        amountPaid: p.amount,
-      })),
-    };
-
-    // ─── DEBUG: ver exactamente qué se envía al backend ──────────────────
-    console.log("🚀 [EditSaleModal] Payload COMPLETO que se envía a onSave:", JSON.stringify(payload, null, 2));
-    console.log("🚀 [EditSaleModal] clientId:", payload.clientId);
-    console.log("🚀 [EditSaleModal] saleDetails.length:", payload.saleDetails.length);
-    console.log("🚀 [EditSaleModal] payments.length:", payload.payments.length);
-
-    onSave(payload);
-    setIsPaymentOpen(false);
-  };
-
-  const columns: ColumnDef<ServiceRow>[] = [
-    { header: "Servicio", accessorKey: "serviceName" },
-    { header: "Colaborador", accessorKey: "employeeName" },
+  const columns: ColumnDef<SaleTableModel>[] = [
     {
-      header: "Precio",
-      accessorKey: "unitPrice",
-      cell: ({ getValue }) => formatARS(getValue<number>()),
+      header: "#",
+      accessorKey: "id",
+      cell: ({ getValue }) => (
+        <span className="text-gray-400 text-xs font-mono">#{getValue<number>()}</span>
+      ),
     },
-    { header: "Desc. %", accessorKey: "discountPercent" },
     {
-      header: "Adicional",
-      accessorKey: "additionalCharge",
-      cell: ({ getValue }) => formatARS(getValue<number>()),
+      header: "Fecha",
+      accessorKey: "dateSale",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500 text-xs">{getValue<string>()}</span>
+      ),
+    },
+    {
+      header: vocab.client,
+      accessorKey: "clientName",
+      cell: ({ getValue }) => (
+        <span className="font-medium text-gray-900">{getValue<string>()}</span>
+      ),
+    },
+    {
+      header: `${vocab.service}s`,
+      accessorKey: "servicesSummary",
+      cell: ({ getValue }) => (
+        <div className="flex flex-wrap gap-1">
+          {(getValue<string[]>() ?? []).map((s, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
+              style={{ background: "#f3f4f6", color: "#374151" }}
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      ),
+    },
+    {
+      header: `${vocab.employee}s`,
+      accessorKey: "employeesSummary",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500 text-xs">
+          {(getValue<string[]>() ?? []).join(", ")}
+        </span>
+      ),
+    },
+    {
+      header: "Pago",
+      accessorKey: "paymentsSummary",
+      cell: ({ getValue }) => (
+        <div className="flex flex-wrap gap-1">
+          {(getValue<{ name: string; total: number }[]>() ?? []).map((p, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium"
+              style={{ background: "#E6F1FB", color: "#185FA5" }}
+            >
+              {p.name}
+            </span>
+          ))}
+        </div>
+      ),
     },
     {
       header: "Total",
-      accessorKey: "total",
-      cell: ({ getValue }) => formatARS(getValue<number>()),
-    },
-    {
-      header: "",
-      id: "quitar",
-      cell: ({ row }) => (
-        <button
-          onClick={() => removeDetail(row.index)}
-          className="text-red-600 text-xs hover:underline"
-        >
-          Quitar
-        </button>
+      accessorKey: "totalAmount",
+      cell: ({ getValue }) => (
+        <span className="font-semibold text-gray-900">
+          {formatARS(getValue<number>())}
+        </span>
       ),
     },
   ];
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <PageLayout
+      title={`${vocab.sale}s`}
+      subtitle="Historial de ventas del negocio"
+      fullWidth
+      actions={
+        <Link href="/sales/new">
+          <Btn variant="primary">+ Nueva {vocab.sale.toLowerCase()}</Btn>
+        </Link>
+      }
+    >
+      {/* Filtros */}
+      <FilterBar onSearch={page.handleSearch} onClear={page.clearFilters}>
+        <Input
+          label=""
+          value={page.fromDate}
+          onChange={page.setFromDate}
+          type="date"
+          placeholder="Desde"
+        />
+        <Input
+          label=""
+          value={page.toDate}
+          onChange={page.setToDate}
+          type="date"
+          placeholder="Hasta"
+        />
+        <AsyncSearchableSelect
+          label=""
+          loadOptions={loadClients}
+          value={page.client}
+          onChange={page.setClient}
+        />
+        <AsyncSearchableSelect
+          label=""
+          loadOptions={loadEmployees}
+          value={page.employee}
+          onChange={page.setEmployee}
+        />
+        <AsyncSearchableSelect
+          label=""
+          loadOptions={loadPaymentTypeSearch}
+          value={page.paymentType}
+          onChange={page.setPaymentType}
+        />
+      </FilterBar>
 
-          <h3 className="text-lg font-semibold">Editar venta #{sale.id}</h3>
+      {/* Tabla */}
+      <ContentCard
+        title={`${vocab.sale}s`}
+        count={
+          !page.isLoading
+            ? `${page.sales?.length ?? 0} resultado${(page.sales?.length ?? 0) !== 1 ? "s" : ""}`
+            : undefined
+        }
+      >
+        <GenericDataTable<SaleTableModel>
+          data={page.sales ?? []}
+          columns={columns}
+          loading={page.isLoading}
+          error={page.isError}
+          rowKey={(row) => row.id}
+          emptyMessage={`No se encontraron ${vocab.sale.toLowerCase()}s`}
+          rowActions={[
+            {
+              id: "view",
+              label: page.isLoadingDetail ? "Cargando…" : "Ver",
+              disabled: () => page.isLoadingDetail,
+              onClick: (row) => page.openDetailModal(row.id),
+            },
+            {
+              id: "edit",
+              label: page.isLoadingEdit ? "Cargando…" : "Editar",
+              variant: "edit",
+              disabled: () => page.isLoadingEdit,
+              onClick: (row) => page.openEditModal(row.id),
+            },
+            {
+              id: "delete",
+              label: page.isDeleting ? "Eliminando…" : "Eliminar",
+              variant: "delete",
+              disabled: () => page.isDeleting,
+              onClick: (row) => {
+                if (window.confirm(`¿Eliminar ${vocab.sale.toLowerCase()} #${row.id}?`))
+                  page.removeSale(row.id);
+              },
+            },
+          ]}
+        />
+      </ContentCard>
 
-          {/* Cliente */}
-          <AsyncSearchableSelect
-            label="Cliente"
-            loadOptions={loadClients}
-            value={client}
-            onChange={setClient}
-          />
+      {/* Modal ver detalle */}
+      {page.viewingSale && !page.isLoadingDetail && (
+        <SaleDetailModal
+          sale={page.viewingSale}
+          onClose={page.closeDetailModal}
+        />
+      )}
 
-          {/* Agregar servicio */}
-          <div className="border rounded-xl p-4 space-y-3 bg-gray-50">
-            <p className="text-sm font-medium text-gray-600">Agregar servicio</p>
-            <div className="grid grid-cols-2 gap-3">
-              <AsyncSearchableSelect
-                label="Servicio"
-                loadOptions={loadServiceTypes}
-                value={serviceSelected}
-                onChange={(opt: any) => setServiceSelected(opt)}
-              />
-              <AsyncSearchableSelect
-                label="Colaborador"
-                loadOptions={loadEmployees}
-                value={employeeSelected}
-                onChange={setEmployeeSelected}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500">Descuento (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={discountPercent}
-                  onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500">Adicional ($)</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={additionalCharge}
-                  onChange={(e) => setAdditionalCharge(Number(e.target.value))}
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
-            <button
-              onClick={addDetail}
-              disabled={!serviceSelected || !employeeSelected}
-              className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              + Agregar servicio
-            </button>
-          </div>
-
-          {/* Tabla servicios */}
-          {details.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">
-              No hay servicios en esta venta.
-            </p>
-          ) : (
-            <GenericDataTable
-              data={details}
-              columns={columns}
-              rowKey={(_, i) => i}
-            />
-          )}
-
-          {/* Total + acciones */}
-          <div className="flex justify-between items-center border-t pt-4">
-            <strong className="text-gray-800">Total: {formatARS(saleTotal)}</strong>
-            <div className="flex gap-2">
-              <button
-                onClick={onClose}
-                disabled={isUpdating}
-                className="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => setIsPaymentOpen(true)}
-                disabled={details.length === 0 || isUpdating}
-                className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {isUpdating ? "Guardando..." : "Confirmar pago"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <PaymentModal
-        isOpen={isPaymentOpen}
-        totalAmount={saleTotal}
-        initialPayments={initialPayments}
-        isLoading={isUpdating}
-        onClose={() => setIsPaymentOpen(false)}
-        onConfirm={handleConfirmPayments}
-      />
-    </>
+      {/* Modal editar */}
+      {page.editingSale && !page.isLoadingEdit && (
+        <EditSaleModal
+          sale={page.editingSale}
+          isUpdating={page.isUpdating}
+          loadClients={loadClients}
+          loadEmployees={loadEmployees}
+          loadServiceTypes={loadServiceType}
+          onSave={page.saveEditSale}
+          onClose={page.closeEditModal}
+        />
+      )}
+    </PageLayout>
   );
 }

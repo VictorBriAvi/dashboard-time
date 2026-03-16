@@ -2,6 +2,7 @@
 
 import { Sale } from "@/core/models/sales/Sale";
 import { formatARS } from "@/core/utils/format";
+import { Modal } from "@/ui/Modals";
 
 type Props = {
   sale: Sale;
@@ -9,150 +10,136 @@ type Props = {
 };
 
 export function SaleDetailModal({ sale, onClose }: Props) {
-  // ✅ FIX: null safety + filtrar detalles eliminados lógicamente
   const activeDetails = (sale.saleDetail ?? []).filter((d) => !d.isDeleted);
   const payments = sale.payments ?? [];
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800">
-              Venta #{sale.id}
-            </h3>
-            <p className="text-sm text-gray-500">{sale.dateSale} · {sale.nameClient}</p>
-          </div>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={`Venta #${sale.id}`}
+      subtitle={`${sale.dateSale} · ${sale.nameClient}`}
+      size="lg"
+      footer={
+        <div className="flex justify-end w-full">
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="px-6 py-5 space-y-6">
-
-          {/* Servicios */}
-          <section>
-            <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">
-              Servicios
-            </h4>
-            {activeDetails.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4">Sin servicios registrados.</p>
-            ) : (
-              <div className="rounded-xl border overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 text-gray-500 text-xs">
-                    <tr>
-                      <th className="text-left px-4 py-2">Servicio</th>
-                      <th className="text-left px-4 py-2">Colaborador</th>
-                      <th className="text-right px-4 py-2">Precio</th>
-                      <th className="text-right px-4 py-2">Desc. %</th>
-                      <th className="text-right px-4 py-2">Adicional</th>
-                      <th className="text-right px-4 py-2">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {activeDetails.map((d, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-800">{d.nameServiceTypeSale}</td>
-                        <td className="px-4 py-3 text-gray-600">{d.nameEmployeeSale}</td>
-                        <td className="px-4 py-3 text-right">{formatARS(d.unitPrice)}</td>
-                        <td className="px-4 py-3 text-right">
-                          {d.discountPercent > 0
-                            ? <span className="text-orange-600">{d.discountPercent}%</span>
-                            : <span className="text-gray-400">—</span>
-                          }
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {d.additionalCharge > 0
-                            ? formatARS(d.additionalCharge)
-                            : <span className="text-gray-400">—</span>
-                          }
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium">{formatARS(d.totalCalculated)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-
-          {/* Pagos */}
-          <section>
-            <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">
-              Pagos
-            </h4>
-            {payments.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4">Sin pagos registrados.</p>
-            ) : (
-              <div className="rounded-xl border overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 text-gray-500 text-xs">
-                    <tr>
-                      <th className="text-left px-4 py-2">Medio de pago</th>
-                      <th className="text-right px-4 py-2">Monto cobrado</th>
-                      <th className="text-right px-4 py-2">Desc. app</th>
-                      <th className="text-right px-4 py-2">Neto negocio</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {payments.map((p, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-800">{p.paymentTypeName}</td>
-                        <td className="px-4 py-3 text-right">{formatARS(p.amountPaid)}</td>
-                        <td className="px-4 py-3 text-right">
-                          {/* ✅ FIX: null safety en campos opcionales del pago */}
-                          {(p.appDiscountPercent ?? 0) > 0
-                            ? <span className="text-blue-600">{p.appDiscountPercent}% ({formatARS(p.appDiscountAmount)})</span>
-                            : <span className="text-gray-400">—</span>
-                          }
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-green-700">
-                          {formatARS(p.netAmountReceived ?? p.amountPaid)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-
-          {/* Totales */}
-          <section className="bg-gray-50 rounded-xl p-4 text-sm space-y-2">
-            <div className="flex justify-between text-gray-600">
-              <span>Subtotal servicios</span>
-              <span>{formatARS(sale.baseAmount ?? 0)}</span>
-            </div>
-            {(sale.surchargePercent ?? 0) > 0 && (
-              <div className="flex justify-between text-yellow-700">
-                <span>Recargo ({sale.surchargePercent}%)</span>
-                <span>+ {formatARS(sale.surchargeAmount ?? 0)}</span>
-              </div>
-            )}
-            <div className="flex justify-between font-semibold text-base border-t pt-2">
-              <span>Total cobrado</span>
-              <span>{formatARS(sale.totalAmount)}</span>
-            </div>
-          </section>
-
-        </div>
-
-        <div className="px-6 pb-5 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-5 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 font-medium"
+            className="px-5 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
           >
             Cerrar
           </button>
         </div>
+      }
+    >
+      <div className="flex flex-col gap-6">
+
+        {/* Servicios */}
+        <section>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            Servicios
+          </p>
+          {activeDetails.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">Sin servicios registrados.</p>
+          ) : (
+            <div className="rounded-xl overflow-hidden" style={{ border: "0.5px solid #e5e7eb" }}>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr style={{ background: "#f9fafb", borderBottom: "0.5px solid #f3f4f6" }}>
+                    <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Servicio</th>
+                    <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Colaborador</th>
+                    <th className="text-right px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Precio</th>
+                    <th className="text-right px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Desc.</th>
+                    <th className="text-right px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Adicional</th>
+                    <th className="text-right px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeDetails.map((d, i) => (
+                    <tr key={i} style={{ borderBottom: "0.5px solid #f9fafb" }}>
+                      <td className="px-4 py-3 font-medium text-gray-900">{d.nameServiceTypeSale}</td>
+                      <td className="px-4 py-3 text-gray-500">{d.nameEmployeeSale}</td>
+                      <td className="px-4 py-3 text-right text-gray-700">{formatARS(d.unitPrice)}</td>
+                      <td className="px-4 py-3 text-right">
+                        {d.discountPercent > 0
+                          ? <span className="text-orange-500 font-medium">{d.discountPercent}%</span>
+                          : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-700">
+                        {d.additionalCharge > 0 ? formatARS(d.additionalCharge) : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-900">{formatARS(d.totalCalculated)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* Pagos */}
+        <section>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            Pagos
+          </p>
+          {payments.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">Sin pagos registrados.</p>
+          ) : (
+            <div className="rounded-xl overflow-hidden" style={{ border: "0.5px solid #e5e7eb" }}>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr style={{ background: "#f9fafb", borderBottom: "0.5px solid #f3f4f6" }}>
+                    <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Medio</th>
+                    <th className="text-right px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Monto cobrado</th>
+                    <th className="text-right px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Desc. app</th>
+                    <th className="text-right px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Neto negocio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p, i) => (
+                    <tr key={i} style={{ borderBottom: "0.5px solid #f9fafb" }}>
+                      <td className="px-4 py-3 font-medium text-gray-900">{p.paymentTypeName}</td>
+                      <td className="px-4 py-3 text-right text-gray-700">{formatARS(p.amountPaid)}</td>
+                      <td className="px-4 py-3 text-right">
+                        {(p.appDiscountPercent ?? 0) > 0
+                          ? <span style={{ color: "#185FA5" }}>{p.appDiscountPercent}% ({formatARS(p.appDiscountAmount)})</span>
+                          : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-green-700">
+                        {formatARS(p.netAmountReceived ?? p.amountPaid)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* Resumen de totales */}
+        <section
+          className="rounded-xl p-4 flex flex-col gap-2"
+          style={{ background: "#f9fafb", border: "0.5px solid #f3f4f6" }}
+        >
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Subtotal servicios</span>
+            <span>{formatARS(sale.baseAmount ?? 0)}</span>
+          </div>
+          {(sale.surchargePercent ?? 0) > 0 && (
+            <div className="flex justify-between text-sm text-amber-600">
+              <span>Recargo ({sale.surchargePercent}%)</span>
+              <span>+{formatARS(sale.surchargeAmount ?? 0)}</span>
+            </div>
+          )}
+          <div
+            className="flex justify-between font-semibold text-base pt-2"
+            style={{ borderTop: "0.5px solid #e5e7eb" }}
+          >
+            <span className="text-gray-900">Total cobrado</span>
+            <span className="text-gray-900">{formatARS(sale.totalAmount)}</span>
+          </div>
+        </section>
 
       </div>
-    </div>
+    </Modal>
   );
 }

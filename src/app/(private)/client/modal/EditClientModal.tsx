@@ -1,7 +1,8 @@
 "use client";
 
-import { Input } from "@/ui/inputs/Input";
 import { Client } from "@/core/models/client/client";
+import { Modal, ModalFooter, ModalField } from "@/ui/Modals";
+import { Input } from "@/ui/inputs/Input";
 
 type Props = {
   client: Client;
@@ -11,93 +12,64 @@ type Props = {
   onSave: () => void;
 };
 
-export function EditClientModal({
-  client,
-  isUpdating,
-  onChange,
-  onClose,
-  onSave,
-}: Props) {
+export function EditClientModal({ client, isUpdating, onChange, onClose, onSave }: Props) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md space-y-4">
-        <h3 className="text-lg font-semibold">Editar cliente</h3>
-
-        <Input
-          label="Nombre"
-          value={client.name}
-          onChange={(v) =>
-            onChange({ ...client, name: v })
-          }
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Editar cliente"
+      subtitle={`Modificando datos de ${client.name}`}
+      size="sm"
+      footer={
+        <ModalFooter
+          onCancel={onClose}
+          onConfirm={onSave}
+          isLoading={isUpdating}
+          confirmLabel="Guardar cambios"
         />
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <ModalField label="Nombre" required>
+          <Input
+            value={client.name}
+            onChange={(v) => onChange({ ...client, name: v })}
+            placeholder="Nombre completo"
+          />
+        </ModalField>
 
-        <Input
-          label="Documento"
-          value={client.identityDocument ?? ""}
-          onChange={(v) =>
-            onChange({
-              ...client,
-              identityDocument: v || null,
-            })
-          }
-        />
+        <ModalField label="Documento">
+          <Input
+            value={client.identityDocument ?? ""}
+            onChange={(v) => onChange({ ...client, identityDocument: v || null })}
+            placeholder="DNI / CUIT"
+          />
+        </ModalField>
 
-        <Input
-          label="Email"
-          value={client.email ?? ""}
-          onChange={(v) =>
-            onChange({
-              ...client,
-              email: v || null,
-            })
-          }
-        />
+        <ModalField label="Email">
+          <Input
+            value={client.email ?? ""}
+            onChange={(v) => onChange({ ...client, email: v || null })}
+            placeholder="correo@ejemplo.com"
+          />
+        </ModalField>
 
-        <Input
-          label="Teléfono"
-          value={client.phone ?? ""}
-          onChange={(v) =>
-            onChange({
-              ...client,
-              phone: v || null,
-            })
-          }
-        />
+        <ModalField label="Teléfono">
+          <Input
+            value={client.phone ?? ""}
+            onChange={(v) => onChange({ ...client, phone: v || null })}
+            placeholder="+54 11..."
+          />
+        </ModalField>
 
-        <Input
-          type="date"
-          label="Fecha nacimiento"
-          value={client.dateBirth ?? ""}
-          onChange={(v) =>
-            onChange({
-              ...client,
-              dateBirth: v || null,
-            })
-          }
-        />
-
-        <div className="flex justify-end gap-2 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isUpdating}
-            className="px-4 py-2 text-sm rounded-md bg-gray-200"
-          >
-            Cancelar
-          </button>
-
-          <button
-            onClick={onSave}
-            disabled={isUpdating}
-            className={`px-4 py-2 text-sm rounded-md text-white ${
-              isUpdating
-                ? "bg-gray-400"
-                : "bg-black hover:bg-gray-800"
-            }`}
-          >
-            {isUpdating ? "Guardando..." : "Guardar"}
-          </button>
-        </div>
+        <ModalField label="Fecha de nacimiento">
+          <Input
+            type="date"
+            value={client.dateBirth ?? ""}
+            onChange={(v) => onChange({ ...client, dateBirth: v || null })}
+          />
+        </ModalField>
       </div>
-    </div>
+    </Modal>
   );
 }

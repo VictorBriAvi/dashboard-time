@@ -1,110 +1,126 @@
 "use client";
 
 import { PaymentType } from "@/core/models/paymentType/PaymentType";
+import { Modal, ModalFooter, ModalField } from "@/ui/Modals";
 import { Input } from "@/ui/inputs/Input";
+
+function Toggle({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
+  return (
+    <label className="flex items-center gap-2.5 cursor-pointer select-none">
+      <div
+        onClick={() => onChange(!checked)}
+        style={{
+          width: 36,
+          height: 20,
+          borderRadius: 10,
+          background: checked ? "#185FA5" : "#d1d5db",
+          position: "relative",
+          transition: "background 0.2s",
+          flexShrink: 0,
+          cursor: "pointer",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: 2,
+            left: checked ? 18 : 2,
+            width: 16,
+            height: 16,
+            borderRadius: "50%",
+            background: "#fff",
+            transition: "left 0.2s",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          }}
+        />
+      </div>
+      <span className="text-sm text-gray-600">{label}</span>
+    </label>
+  );
+}
 
 type Props = {
   paymentType: PaymentType;
-  isUpdating:  boolean;
-  onChange:    (updated: PaymentType) => void;
-  onClose:     () => void;
-  onSave:      () => void;
+  isUpdating: boolean;
+  onChange: (updated: PaymentType) => void;
+  onClose: () => void;
+  onSave: () => void;
 };
 
-export function EditPaymentTypeModal({
-  paymentType,
-  isUpdating,
-  onChange,
-  onClose,
-  onSave,
-}: Props) {
+export function EditPaymentTypeModal({ paymentType, isUpdating, onChange, onClose, onSave }: Props) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md space-y-4">
-        <h3 className="text-lg font-semibold">Editar tipo de pago</h3>
-
-        <Input
-          label="Nombre"
-          value={paymentType.name}
-          onChange={(value) => onChange({ ...paymentType, name: value })}
-          disabled={isUpdating}
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Editar medio de pago"
+      subtitle={paymentType.name}
+      size="sm"
+      footer={
+        <ModalFooter
+          onCancel={onClose}
+          onConfirm={onSave}
+          isLoading={isUpdating}
+          confirmLabel="Guardar cambios"
         />
-
-        {/* Descuento */}
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="edit-applyDiscount"
-            checked={paymentType.applyDiscount}
-            onChange={(e) =>
-              onChange({ ...paymentType, applyDiscount: e.target.checked })
-            }
-            disabled={isUpdating}
-            className="w-4 h-4 accent-black"
-          />
-          <label htmlFor="edit-applyDiscount" className="text-sm text-gray-700">
-            Aplica descuento
-          </label>
-        </div>
-
-        {paymentType.applyDiscount && (
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <ModalField label="Nombre" required>
           <Input
-            label="Porcentaje de descuento (%)"
-            value={String(paymentType.discountPercent)}
-            onChange={(value) =>
-              onChange({ ...paymentType, discountPercent: Number(value) })
-            }
-            disabled={isUpdating}
+            value={paymentType.name}
+            onChange={(v) => onChange({ ...paymentType, name: v })}
+            placeholder="Ej: Efectivo, Débito..."
           />
-        )}
+        </ModalField>
 
-        {/* Recargo */}
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="edit-applySurcharge"
+        <div
+          className="rounded-lg p-3 flex flex-col gap-3"
+          style={{ background: "#f9fafb", border: "0.5px solid #f3f4f6" }}
+        >
+          <Toggle
             checked={paymentType.applySurcharge}
-            onChange={(e) =>
-              onChange({ ...paymentType, applySurcharge: e.target.checked })
-            }
-            disabled={isUpdating}
-            className="w-4 h-4 accent-black"
+            onChange={(v) => onChange({ ...paymentType, applySurcharge: v })}
+            label="Aplicar recargo al cliente"
           />
-          <label htmlFor="edit-applySurcharge" className="text-sm text-gray-700">
-            Aplica recargo
-          </label>
+          {paymentType.applySurcharge && (
+            <ModalField label="% de recargo">
+              <Input
+                value={String(paymentType.surchargePercent)}
+                onChange={(v) => onChange({ ...paymentType, surchargePercent: Number(v) })}
+                placeholder="Ej: 10"
+              />
+            </ModalField>
+          )}
         </div>
 
-        {paymentType.applySurcharge && (
-          <Input
-            label="Porcentaje de recargo (%)"
-            value={String(paymentType.surchargePercent)}
-            onChange={(value) =>
-              onChange({ ...paymentType, surchargePercent: Number(value) })
-            }
-            disabled={isUpdating}
+        <div
+          className="rounded-lg p-3 flex flex-col gap-3"
+          style={{ background: "#f9fafb", border: "0.5px solid #f3f4f6" }}
+        >
+          <Toggle
+            checked={paymentType.applyDiscount}
+            onChange={(v) => onChange({ ...paymentType, applyDiscount: v })}
+            label="Descuento de app (ej: comisión)"
           />
-        )}
-
-        <div className="flex justify-end gap-2 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isUpdating}
-            className="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={onSave}
-            disabled={isUpdating}
-            className={`px-4 py-2 text-sm rounded-md text-white ${
-              isUpdating ? "bg-gray-400" : "bg-black hover:bg-gray-800"
-            }`}
-          >
-            {isUpdating ? "Guardando..." : "Guardar"}
-          </button>
+          {paymentType.applyDiscount && (
+            <ModalField label="% descuento app">
+              <Input
+                value={String(paymentType.discountPercent)}
+                onChange={(v) => onChange({ ...paymentType, discountPercent: Number(v) })}
+                placeholder="Ej: 3"
+              />
+            </ModalField>
+          )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

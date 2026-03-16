@@ -1,7 +1,8 @@
 "use client";
 
-import { Input } from "@/ui/inputs/Input";
 import { Employee } from "@/core/models/employee/employee";
+import { Modal, ModalFooter, ModalField } from "@/ui/Modals";
+import { Input } from "@/ui/inputs/Input";
 
 type Props = {
   employee: Employee;
@@ -11,78 +12,65 @@ type Props = {
   onSave: () => void;
 };
 
-export function EditEmployeeModal({
-  employee,
-  isUpdating,
-  onChange,
-  onClose,
-  onSave,
-}: Props) {
-
+export function EditEmployeeModal({ employee, isUpdating, onChange, onClose, onSave }: Props) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md space-y-4">
-        <h3 className="text-lg font-semibold">Editar empleado</h3>
-
-        <Input
-          label="Nombre"
-          value={employee.name}
-          onChange={(v) => onChange({ ...employee, name: v })}
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Editar colaborador"
+      subtitle={`Modificando datos de ${employee.name}`}
+      size="sm"
+      footer={
+        <ModalFooter
+          onCancel={onClose}
+          onConfirm={onSave}
+          isLoading={isUpdating}
+          confirmLabel="Guardar cambios"
         />
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <ModalField label="Nombre" required>
+          <Input
+            value={employee.name}
+            onChange={(v) => onChange({ ...employee, name: v })}
+            placeholder="Nombre completo"
+          />
+        </ModalField>
 
-        <Input
-          label="Documento"
-          value={employee.identityDocument}
-          onChange={(v) =>
-            onChange({ ...employee, identityDocument: v })
-          }
-        />
+        <ModalField label="Documento">
+          <Input
+            value={employee.identityDocument ?? ""}
+            onChange={(v) => onChange({ ...employee, identityDocument: v })}
+            placeholder="DNI"
+          />
+        </ModalField>
 
-        <Input
-          label="% Pago"
-          value={String(employee.paymentPercentage)}
-          onChange={(v) =>
-            onChange({ ...employee, paymentPercentage: Number(v) })
-          }
-        />
+        <ModalField label="% de pago" required>
+          <Input
+            value={String(employee.paymentPercentage)}
+            onChange={(v) => onChange({ ...employee, paymentPercentage: Number(v) })}
+            placeholder="Ej: 50"
+          />
+        </ModalField>
 
-        <Input
-          type="date"
-          label="Fecha nacimiento"
-          value={
-            employee.employeeDateBirth
-              ? employee.employeeDateBirth.split("-").reverse().join("-")
-              : ""
-          }
-          onChange={(v) =>
-            onChange({
-              ...employee,
-              employeeDateBirth: v.split("-").reverse().join("-"),
-            })
-          }
-        />
-
-
-        <div className="flex justify-end gap-2 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isUpdating}
-            className="px-4 py-2 text-sm rounded-md bg-gray-200"
-          >
-            Cancelar
-          </button>
-
-          <button
-            onClick={onSave}
-            disabled={isUpdating}
-            className={`px-4 py-2 text-sm rounded-md text-white ${
-              isUpdating ? "bg-gray-400" : "bg-black hover:bg-gray-800"
-            }`}
-          >
-            {isUpdating ? "Guardando..." : "Guardar"}
-          </button>
-        </div>
+        <ModalField label="Fecha de nacimiento">
+          <Input
+            type="date"
+            value={
+              employee.employeeDateBirth
+                ? employee.employeeDateBirth.split("-").reverse().join("-")
+                : ""
+            }
+            onChange={(v) =>
+              onChange({
+                ...employee,
+                employeeDateBirth: v.split("-").reverse().join("-"),
+              })
+            }
+          />
+        </ModalField>
       </div>
-    </div>
+    </Modal>
   );
 }

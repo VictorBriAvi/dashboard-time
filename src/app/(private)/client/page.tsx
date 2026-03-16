@@ -1,196 +1,168 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import GenericDataTable from "@/ui/dataTable/GenericDataTable";
-import { Input } from "@/ui/inputs/Input";
-import { User, Mail, Phone, Calendar, AlertTriangle, Edit, Trash2, Plus, Search, X } from "lucide-react";
 import { Client } from "@/core/models/client/client";
-import { EditClientModal } from "./modal/EditClientModal";
-
-import { useAuthStore } from "@/shared/store/useAuthStore";
 import { useClientPage } from "./hook/useClientPage";
+import { EditClientModal } from "./modal/EditClientModal";
+import { useAuthStore } from "@/shared/store/useAuthStore";
+import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { PageLayout, FormPanel, ContentCard, FilterBar, Btn } from "@/ui/PageLayout";
+import { Input } from "@/ui/inputs/Input";
 
 export default function ClientPage() {
-  const clientPage = useClientPage();
+  const page = useClientPage();
   const { vocab } = useAuthStore();
 
   const columns: ColumnDef<Client>[] = [
-    { header: "Nombre",    accessorKey: "name" },
-    { header: "Documento", accessorKey: "identityDocument" },
-    { header: "Email",     accessorKey: "email" },
-    { header: "Teléfono",  accessorKey: "phone" },
-    { header: "Fecha",     accessorKey: "dateBirth" },
+    {
+      header: "Nombre",
+      accessorKey: "name",
+      cell: ({ getValue }) => (
+        <span className="font-medium text-gray-900">{getValue<string>()}</span>
+      ),
+    },
+    {
+      header: "Documento",
+      accessorKey: "identityDocument",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500">{getValue<string>() || "—"}</span>
+      ),
+    },
+    {
+      header: "Email",
+      accessorKey: "email",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500">{getValue<string>() || "—"}</span>
+      ),
+    },
+    {
+      header: "Teléfono",
+      accessorKey: "phone",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500">{getValue<string>() || "—"}</span>
+      ),
+    },
+    {
+      header: "Nacimiento",
+      accessorKey: "dateBirth",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500">{getValue<string>() || "—"}</span>
+      ),
+    },
   ];
 
+  const formPanel = (
+    <FormPanel title={`Nuevo ${vocab.client.toLowerCase()}`}>
+      <Input
+        label="Nombre"
+        value={page.name}
+        onChange={page.setName}
+        disabled={page.isCreating}
+        placeholder="Ej: Ana García"
+      />
+      <Input
+        label="Documento"
+        value={page.identityDocument}
+        onChange={page.setIdentityDocument}
+        disabled={page.isCreating}
+        placeholder="DNI / CUIT"
+      />
+      <Input
+        label="Email"
+        value={page.email}
+        onChange={page.setEmail}
+        disabled={page.isCreating}
+        placeholder="correo@ejemplo.com"
+      />
+      <Input
+        label="Teléfono"
+        value={page.phone}
+        onChange={page.setPhone}
+        disabled={page.isCreating}
+        placeholder="+54 11..."
+      />
+      <Input
+        type="date"
+        label="Fecha de nacimiento"
+        value={page.dateBirth}
+        onChange={page.setDateBirth}
+        disabled={page.isCreating}
+      />
+      <Btn
+        variant="primary"
+        className="w-full justify-center mt-1"
+        onClick={page.addClient}
+        disabled={!page.canCreateClient}
+        loading={page.isCreating}
+      >
+        Guardar {vocab.client.toLowerCase()}
+      </Btn>
+    </FormPanel>
+  );
+
   return (
-    <section className="w-full px-6 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white rounded-2xl shadow-md p-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800">{vocab.client}s</h2>
-          <p className="text-sm text-gray-500">
-            Gestiona los {vocab.client.toLowerCase()}s registrados en el sistema
-          </p>
-        </div>
-      </div>
+    <PageLayout
+      title={`${vocab.client}s`}
+      subtitle={`Gestioná los ${vocab.client.toLowerCase()}s registrados`}
+      sidebar={formPanel}
+    >
+      {/* Barra de búsqueda */}
+      <FilterBar onClear={() => page.setSearch("")}>
+        <Input
+          label=""
+          value={page.search}
+          onChange={page.setSearch}
+          placeholder={`Buscar ${vocab.client.toLowerCase()} por nombre...`}
+        />
+      </FilterBar>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Panel izquierdo */}
-        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-6">
-          <h3 className="text-sm font-medium text-gray-700">
-            Nuevo {vocab.client.toLowerCase()}
-          </h3>
+      {/* Tabla */}
+      <ContentCard
+        title={`${vocab.client}s registrados`}
+        count={
+          !page.isLoading
+            ? `${page.clients?.length ?? 0} resultado${(page.clients?.length ?? 0) !== 1 ? "s" : ""}`
+            : undefined
+        }
+      >
+        <GenericDataTable<Client>
+          data={page.clients ?? []}
+          columns={columns}
+          loading={page.isLoading}
+          error={page.isError}
+          rowKey={(row) => row.id}
+          emptyMessage={`No se encontraron ${vocab.client.toLowerCase()}s`}
+          rowActions={[
+            {
+              id: "edit",
+              label: "Editar",
+              variant: "edit",
+              onClick: page.openEditModal,
+            },
+            {
+              id: "delete",
+              label: page.isDeleting ? "Eliminando…" : "Eliminar",
+              variant: "delete",
+              disabled: () => page.isDeleting,
+              onClick: (row) => {
+                if (window.confirm(`¿Eliminar a "${row.name}"? Esta acción no se puede deshacer.`))
+                  page.removeClient(row.id);
+              },
+            },
+          ]}
+        />
+      </ContentCard>
 
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Nombre
-            </label>
-            <Input 
-              label="Nombre"   
-              value={clientPage.name}             
-              onChange={clientPage.setName}             
-              disabled={clientPage.isCreating} 
-            />
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Documento
-            </label>
-            <Input 
-              label="Documento" 
-              value={clientPage.identityDocument} 
-              onChange={clientPage.setIdentityDocument} 
-              disabled={clientPage.isCreating} 
-            />
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <Input 
-              label="Email"    
-              value={clientPage.email}           
-              onChange={clientPage.setEmail}           
-              disabled={clientPage.isCreating} 
-            />
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Teléfono
-            </label>
-            <Input 
-              label="Teléfono" 
-              value={clientPage.phone}           
-              onChange={clientPage.setPhone}           
-              disabled={clientPage.isCreating} 
-            />
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Fecha nacimiento
-            </label>
-            <Input 
-              type="date"
-              label="Fecha nacimiento" 
-              value={clientPage.dateBirth} 
-              onChange={clientPage.setDateBirth} 
-              disabled={clientPage.isCreating} 
-            />
-          </div>
-
-          <div className="mt-6">
-            <button
-              onClick={clientPage.addClient}
-              disabled={!clientPage.canCreateClient || clientPage.isCreating}
-              className={`w-full rounded-lg py-2.5 text-sm font-medium transition-colors ${
-                !clientPage.canCreateClient || clientPage.isCreating
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-black text-white hover:bg-gray-800"
-              }`}
-            >
-              {clientPage.isCreating ? "Agregando..." : `Agregar ${vocab.client.toLowerCase()}`}
-            </button>
-          </div>
-        </div>
-
-        {/* Panel derecho */}
-        <div className="col-span-12 lg:col-span-9 space-y-6">
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-6">
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-              <h3 className="text-sm font-medium text-gray-700">
-                Filtros
-              </h3>
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-12 md:col-span-6">
-                  <Input 
-                    label={`Buscar ${vocab.client.toLowerCase()}`} 
-                    value={clientPage.search} 
-                    onChange={clientPage.setSearch} 
-                    placeholder="Ej: Juan Pérez"
-                  />
-                </div>
-              </div>
-              <div className="border-t pt-4 flex justify-start">
-                <button type="button" onClick={() => clientPage.setSearch("")} className="text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                  Limpiar filtros
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
-            {!clientPage.isLoading && (
-              <p className="text-sm text-gray-600">
-                {clientPage.clients.length} {vocab.client.toLowerCase()}
-                {clientPage.clients.length !== 1 && "s"} encontrado
-                {clientPage.clients.length !== 1 && "s"}
-              </p>
-            )}
-            {!clientPage.isLoading && clientPage.clients.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-sm">
-                  No se encontraron {vocab.client.toLowerCase()}s con los filtros seleccionados.
-                </p>
-              </div>
-            ) : (
-              <GenericDataTable<Client>
-                data={clientPage.clients}
-                columns={columns}
-                loading={clientPage.isLoading}
-                error={clientPage.isError}
-                rowKey={(row) => row.id}
-                rowActions={[
-                  { id: "edit", label: "Editar", variant: "edit", onClick: clientPage.openEditModal },
-                  {
-                    id: "delete",
-                    label: clientPage.isDeleting ? "Eliminando..." : "Eliminar",
-                    variant: "delete",
-                    disabled: () => clientPage.isDeleting,
-                    onClick: (row) => {
-                      if (window.confirm(`¿Eliminar ${vocab.client.toLowerCase()} "${row.name}"?`))
-                        clientPage.removeClient(row.id);
-                    },
-                  },
-                ]}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {clientPage.editingClient && (
+      {/* Modal editar */}
+      {page.editingClient && (
         <EditClientModal
-          client={clientPage.editingClient}
-          isUpdating={clientPage.isUpdating}
-          onChange={clientPage.setEditingClient}
-          onClose={() => clientPage.setEditingClient(null)}
-          onSave={clientPage.updateClient}
+          client={page.editingClient}
+          isUpdating={page.isUpdating}
+          onChange={page.setEditingClient}
+          onClose={() => page.setEditingClient(null)}
+          onSave={page.updateClient}
         />
       )}
-    </section>
+    </PageLayout>
   );
 }

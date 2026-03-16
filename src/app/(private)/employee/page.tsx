@@ -1,126 +1,169 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import GenericDataTable from "@/ui/dataTable/GenericDataTable";
-import { Input } from "@/ui/inputs/Input";
-import { EditEmployeeModal } from "./modal/EditEmployeeModal";
 import { Employee } from "@/core/models/employee/employee";
 import { useEmployeePage } from "./hook/useEmployeePage";
+import { EditEmployeeModal } from "./modal/EditEmployeeModal";
 import { useAuthStore } from "@/shared/store/useAuthStore";
+import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { PageLayout, FormPanel, ContentCard, FilterBar, Btn } from "@/ui/PageLayout";
+import { Input } from "@/ui/inputs/Input";
 
 export default function EmployeePage() {
-  const employeePage = useEmployeePage();
+  const page = useEmployeePage();
   const { vocab } = useAuthStore();
 
   const columns: ColumnDef<Employee>[] = [
-    { header: "Nombre",    accessorKey: "name" },
-    { header: "Documento", accessorKey: "identityDocument" },
-    { header: "% Pago",    accessorKey: "paymentPercentage", cell: ({ getValue }) => `${getValue<number>()}%` },
-    { header: "Fecha nacimiento", accessorKey: "employeeDateBirth" },
+    {
+      header: "Nombre",
+      accessorKey: "name",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex-shrink-0 flex items-center justify-center text-[10px] font-semibold"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              background: "#E6F1FB",
+              color: "#185FA5",
+            }}
+          >
+            {row.original.name?.charAt(0).toUpperCase()}
+          </div>
+          <span className="font-medium text-gray-900">{row.original.name}</span>
+        </div>
+      ),
+    },
+    {
+      header: "Documento",
+      accessorKey: "identityDocument",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500">{getValue<string>() || "—"}</span>
+      ),
+    },
+    {
+      header: "% Pago",
+      accessorKey: "paymentPercentage",
+      cell: ({ getValue }) => (
+        <span
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+          style={{ background: "#E6F1FB", color: "#185FA5" }}
+        >
+          {getValue<number>()}%
+        </span>
+      ),
+    },
+    {
+      header: "Nacimiento",
+      accessorKey: "employeeDateBirth",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500">{getValue<string>() || "—"}</span>
+      ),
+    },
   ];
 
+  const formPanel = (
+    <FormPanel title={`Nuevo ${vocab.employee.toLowerCase()}`}>
+      <Input
+        label="Nombre"
+        value={page.name}
+        onChange={page.setName}
+        disabled={page.isCreating}
+        placeholder="Nombre completo"
+      />
+      <Input
+        label="Documento"
+        value={page.identityDocument}
+        onChange={page.setIdentityDocument}
+        disabled={page.isCreating}
+        placeholder="DNI"
+      />
+      <Input
+        label="% de pago"
+        value={page.paymentPercentage}
+        onChange={page.setPaymentPercentage}
+        disabled={page.isCreating}
+        placeholder="Ej: 50"
+      />
+      <Input
+        type="date"
+        label="Fecha de nacimiento"
+        value={page.dateBirth}
+        onChange={page.setDateBirth}
+        disabled={page.isCreating}
+      />
+      <Btn
+        variant="primary"
+        className="w-full justify-center mt-1"
+        onClick={page.addEmployee}
+        loading={page.isCreating}
+      >
+        Guardar {vocab.employee.toLowerCase()}
+      </Btn>
+    </FormPanel>
+  );
+
   return (
-    <section className="w-full px-6 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white rounded-2xl shadow-md p-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800">{vocab.employee}s</h2>
-          <p className="text-sm text-gray-500">
-            Gestiona los {vocab.employee.toLowerCase()}s registrados en el sistema
-          </p>
-        </div>
-      </div>
+    <PageLayout
+      title={`${vocab.employee}s`}
+      subtitle={`Equipo del negocio`}
+      sidebar={formPanel}
+    >
+      <FilterBar onClear={() => page.setSearch("")}>
+        <Input
+          label=""
+          value={page.search}
+          onChange={page.setSearch}
+          placeholder={`Buscar ${vocab.employee.toLowerCase()}...`}
+        />
+      </FilterBar>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Panel izquierdo */}
-        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-6">
-          <h3 className="text-sm font-medium text-gray-700">
-            Nuevo {vocab.employee.toLowerCase()}
-          </h3>
+      <ContentCard
+        title={`${vocab.employee}s`}
+        count={
+          !page.isLoading
+            ? `${page.employees?.length ?? 0} activo${(page.employees?.length ?? 0) !== 1 ? "s" : ""}`
+            : undefined
+        }
+      >
+        <GenericDataTable<Employee>
+          data={page.employees ?? []}
+          columns={columns}
+          loading={page.isLoading}
+          error={page.isError}
+          rowKey={(row) => row.id}
+          emptyMessage={`No se encontraron ${vocab.employee.toLowerCase()}s`}
+          rowActions={[
+            {
+              id: "edit",
+              label: "Editar",
+              variant: "edit",
+              onClick: page.openEditModal,
+            },
+            {
+              id: "delete",
+              label: page.isDeleting ? "Eliminando…" : "Eliminar",
+              variant: "delete",
+              disabled: () => page.isDeleting,
+              onClick: (row) => {
+                if (window.confirm(`¿Eliminar a "${row.name}"?`))
+                  page.removeEmployee(row.id);
+              },
+            },
+          ]}
+        />
+      </ContentCard>
 
-          <Input label="Nombre"    value={employeePage.name}             onChange={employeePage.setName}             disabled={employeePage.isCreating} />
-          <Input label="Documento" value={employeePage.identityDocument} onChange={employeePage.setIdentityDocument} disabled={employeePage.isCreating} />
-          <Input label="% de pago" value={employeePage.paymentPercentage} onChange={employeePage.setPaymentPercentage} disabled={employeePage.isCreating} />
-          <Input type="date" label="Fecha nacimiento" value={employeePage.dateBirth} onChange={employeePage.setDateBirth} disabled={employeePage.isCreating} />
-
-          <button
-            onClick={employeePage.addEmployee}
-            disabled={employeePage.isCreating}
-            className={`w-full rounded-lg py-2.5 text-sm font-medium transition-colors ${
-              employeePage.isCreating ? "bg-gray-400 cursor-not-allowed" : "bg-black text-white hover:bg-gray-800"
-            }`}
-          >
-            {employeePage.isCreating ? "Agregando..." : `Agregar ${vocab.employee.toLowerCase()}`}
-          </button>
-        </div>
-
-        {/* Panel derecho */}
-        <div className="col-span-12 lg:col-span-9 space-y-6">
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-6">
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-              <h3 className="text-sm font-medium text-gray-700">Filtros</h3>
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-12 md:col-span-6">
-                  <Input label={`Buscar ${vocab.employee.toLowerCase()}`} value={employeePage.search} onChange={employeePage.setSearch} placeholder="Ej: Juan Pérez" />
-                </div>
-              </div>
-              <div className="border-t pt-4 flex justify-start">
-                <button type="button" onClick={() => employeePage.setSearch("")} className="text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                  Limpiar filtros
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
-            {!employeePage.isLoading && (
-              <p className="text-sm text-gray-600">
-                {employeePage.employees.length} {vocab.employee.toLowerCase()}
-                {employeePage.employees.length !== 1 && "s"} encontrado
-                {employeePage.employees.length !== 1 && "s"}
-              </p>
-            )}
-            {!employeePage.isLoading && employeePage.employees.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-sm">
-                  No se encontraron {vocab.employee.toLowerCase()}s con los filtros seleccionados.
-                </p>
-              </div>
-            ) : (
-              <GenericDataTable<Employee>
-                data={employeePage.employees}
-                columns={columns}
-                loading={employeePage.isLoading}
-                error={employeePage.isError}
-                rowKey={(row) => row.id}
-                rowActions={[
-                  { id: "edit", label: "Editar", variant: "edit", onClick: employeePage.openEditModal },
-                  {
-                    id: "delete",
-                    label: employeePage.isDeleting ? "Eliminando..." : "Eliminar",
-                    variant: "delete",
-                    disabled: () => employeePage.isDeleting,
-                    onClick: (row) => {
-                      if (window.confirm(`¿Eliminar ${vocab.employee.toLowerCase()} "${row.name}"?`))
-                        employeePage.removeEmployee(row.id);
-                    },
-                  },
-                ]}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {employeePage.editingEmployee && (
+      {page.editingEmployee && (
         <EditEmployeeModal
-          employee={employeePage.editingEmployee}
-          isUpdating={employeePage.isUpdating}
-          onChange={employeePage.setEditingEmployee}
-          onClose={() => employeePage.setEditingEmployee(null)}
-          onSave={employeePage.updateEmployee}
+          employee={page.editingEmployee}
+          isUpdating={page.isUpdating}
+          onChange={page.setEditingEmployee}
+          onClose={() => page.setEditingEmployee(null)}
+          onSave={page.updateEmployee}
         />
       )}
-    </section>
+    </PageLayout>
   );
 }

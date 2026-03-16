@@ -1,4 +1,5 @@
-// src/ui/LineChartCustom.tsx
+"use client";
+
 import {
   LineChart,
   Line,
@@ -21,62 +22,104 @@ interface LineChartCustomProps {
   loading?: boolean;
 }
 
-const defaultColors = ["#10b981", "#ef4444", "#3b82f6", "#f59e0b"];
+// Paleta del design system
+const DEFAULT_COLORS = ["#3B6D11", "#ef4444", "#185FA5", "#854F0B"];
+
+const defaultFormatter = (value?: number) =>
+  typeof value === "number"
+    ? `$${value.toLocaleString("es-AR", { minimumFractionDigits: 0 })}`
+    : "-";
 
 export default function LineChartCustom({
   title,
   data,
   lines,
   xAxisKey,
-  colors = defaultColors,
-  height = 350,
-  formatter = (value?: number) =>
-    typeof value === "number" ? `$${value.toLocaleString("es-AR")}` : "-",
+  colors = DEFAULT_COLORS,
+  height = 260,
+  formatter = defaultFormatter,
   loading = false,
 }: LineChartCustomProps) {
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-md p-6 animate-pulse">
-        <div className="h-6 w-48 bg-gray-300 rounded mb-6"></div>
+      <div style={{ border: "0.5px solid #e5e7eb" }} className="bg-white rounded-xl p-5 animate-pulse">
+        <div className="h-4 w-52 bg-gray-200 rounded mb-5" />
+        <div className="flex items-end gap-1" style={{ height }}>
+          {Array.from({ length: 14 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-gray-100 rounded-t"
+              style={{ height: `${20 + (i % 5) * 15}%` }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-        <div className="w-full bg-gray-100 rounded" style={{ height }}>
-          {/* Base del gráfico */}
-          <div className="h-full flex items-end gap-3 p-4">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-gray-300 rounded w-6"
-                style={{
-                  height: `${30 + Math.random() * 50}%`,
-                }}
-              ></div>
-            ))}
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ border: "0.5px solid #e5e7eb" }} className="bg-white rounded-xl p-5">
+        <p className="text-[12px] font-semibold text-gray-700 mb-4">{title}</p>
+        <div className="flex flex-col items-center justify-center py-10 gap-2">
+          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 12L5 7l3 3 4-5 3 2" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
+          <p className="text-xs text-gray-400">Sin datos para mostrar</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6">
-      <h2 className="text-xl font-semibold text-gray-700 mb-6">{title}</h2>
+    <div style={{ border: "0.5px solid #e5e7eb" }} className="bg-white rounded-xl p-5">
+      <p className="text-[12px] font-semibold text-gray-700 mb-4">{title}</p>
 
       <ResponsiveContainer width="100%" height={height}>
         <LineChart
           data={data}
-          margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+          margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey={xAxisKey} tick={{ fill: "#374151" }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
 
-          <YAxis tick={{ fill: "#374151" }} />
+          <XAxis
+            dataKey={xAxisKey}
+            tick={{ fontSize: 11, fill: "#9ca3af" }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tickFormatter={(v) =>
+              typeof v === "number"
+                ? `$${(v / 1000).toFixed(0)}k`
+                : v
+            }
+            tick={{ fontSize: 10, fill: "#9ca3af" }}
+            axisLine={false}
+            tickLine={false}
+            width={40}
+          />
+
           <Tooltip
             formatter={(value) =>
               formatter(typeof value === "number" ? value : undefined)
             }
+            contentStyle={{
+              borderRadius: 8,
+              border: "0.5px solid #e5e7eb",
+              fontSize: 12,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            }}
+            cursor={{ stroke: "#e5e7eb", strokeWidth: 1 }}
           />
 
-          <Legend />
+          <Legend
+            wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
+            iconType="circle"
+            iconSize={8}
+          />
 
           {lines.map((lineKey, index) => (
             <Line
@@ -84,9 +127,9 @@ export default function LineChartCustom({
               type="monotone"
               dataKey={lineKey}
               stroke={colors[index % colors.length]}
-              strokeWidth={3}
-              dot={{ r: 5 }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 5, strokeWidth: 0 }}
             />
           ))}
         </LineChart>

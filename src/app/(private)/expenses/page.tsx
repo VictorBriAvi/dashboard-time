@@ -1,185 +1,213 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
+import { Expense } from "@/core/models/expense/expense";
+import { useExpensePage } from "./hook/useExpensePage";
+import { EditExpenseModal } from "./modal/EditExpenseModal";
+import { useAuthStore } from "@/shared/store/useAuthStore";
+import { useExpenseCategorieSearch } from "@/data/hooks/expenseCategorie/useExpenseCategorie";
+import { usePaymentTypeAllSearch } from "@/data/hooks/paymentType/usePaymentType";
 import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { PageLayout, FormPanel, ContentCard, FilterBar, Btn } from "@/ui/PageLayout";
 import { Input } from "@/ui/inputs/Input";
 import { AsyncSearchableSelect } from "@/ui/inputs/SearchSelect";
 import { formatARS } from "@/core/utils/format";
-import { Expense } from "@/core/models/expense/expense";
-import { useExpenseCategorieSearch } from "@/data/hooks/expenseCategorie/useExpenseCategorie";
-import { EditExpenseModal } from "./modal/EditExpenseModal";
-import { usePaymentTypeAllSearch } from "@/data/hooks/paymentType/usePaymentType";
-import { useExpensePage } from "./hook/useExpensePage";
-import { useAuthStore } from "@/shared/store/useAuthStore";
 
 export default function ExpensePage() {
-  const expensePage = useExpensePage();
+  const page = useExpensePage();
+  const { vocab } = useAuthStore();
   const { loadExpenseCategories } = useExpenseCategorieSearch();
   const { loadPaymentTypeSearch } = usePaymentTypeAllSearch();
-  const { vocab } = useAuthStore();
 
   const columns: ColumnDef<Expense>[] = [
-    { header: "Fecha",              accessorKey: "expensesDateStr" },
-    { header: "Descripción",        accessorKey: "description" },
-    { header: "Precio",             accessorKey: "price", cell: ({ getValue }) => formatARS(getValue<number>()) },
-    { header: vocab.expenseCategory, accessorKey: "nameExpenseType" },
-    { header: vocab.paymentType,     accessorKey: "paymentTypeName" },
+    {
+      header: "Fecha",
+      accessorKey: "expensesDateStr",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500 text-xs">{getValue<string>()}</span>
+      ),
+    },
+    {
+      header: "Descripción",
+      accessorKey: "description",
+      cell: ({ getValue }) => (
+        <span className="font-medium text-gray-900">{getValue<string>()}</span>
+      ),
+    },
+    {
+      header: vocab.expenseCategory,
+      accessorKey: "nameExpenseType",
+      cell: ({ getValue }) => (
+        <span
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+          style={{ background: "#FAEEDA", color: "#854F0B" }}
+        >
+          {getValue<string>()}
+        </span>
+      ),
+    },
+    {
+      header: vocab.paymentType,
+      accessorKey: "paymentTypeName",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500 text-xs">{getValue<string>()}</span>
+      ),
+    },
+    {
+      header: "Monto",
+      accessorKey: "price",
+      cell: ({ getValue }) => (
+        <span className="font-medium text-red-600">
+          -{formatARS(getValue<number>())}
+        </span>
+      ),
+    },
   ];
 
+  const formPanel = (
+    <FormPanel title={`Nuevo ${vocab.expense.toLowerCase()}`}>
+      <Input
+        label="Descripción"
+        value={page.description}
+        onChange={page.setDescription}
+        disabled={page.isCreating}
+        placeholder="Ej: Compra de insumos"
+      />
+      <AsyncSearchableSelect
+        label={vocab.expenseCategory}
+        loadOptions={loadExpenseCategories}
+        value={page.expenseTypeSelected}
+        onChange={page.setExpenseTypeSelected}
+      />
+      <Input
+        label="Monto"
+        value={page.price}
+        onChange={page.setPrice}
+        disabled={page.isCreating}
+        placeholder="$0"
+      />
+      <AsyncSearchableSelect
+        label={vocab.paymentType}
+        loadOptions={loadPaymentTypeSearch}
+        value={page.paymentTypeSelected}
+        onChange={page.setPaymentTypeSelected}
+      />
+      <Input
+        type="date"
+        label="Fecha"
+        value={page.expenseDate}
+        onChange={page.setExpenseDate}
+        disabled={page.isCreating}
+      />
+      <Btn
+        variant="primary"
+        className="w-full justify-center mt-1"
+        onClick={page.addExpense}
+        loading={page.isCreating}
+      >
+        Guardar {vocab.expense.toLowerCase()}
+      </Btn>
+    </FormPanel>
+  );
+
   return (
-    <section className="w-full px-6 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white rounded-2xl shadow-md p-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800">{vocab.expense}s</h2>
-          <p className="text-sm text-gray-500">
-            Gestiona los {vocab.expense.toLowerCase()}s registrados en el sistema
-          </p>
-        </div>
-      </div>
+    <PageLayout
+      title={`${vocab.expense}s`}
+      subtitle="Registro de egresos del negocio"
+      actions={
+        <Link
+          href="/expenses/expensesCategorie"
+          className="text-sm font-medium text-[#185FA5] hover:underline"
+        >
+          Ver categorías →
+        </Link>
+      }
+      sidebar={formPanel}
+    >
+      {/* Filtros — se aplican automáticamente al cambiar los valores */}
+      <FilterBar onClear={page.clearFilters}>
+        <Input
+          label=""
+          value={page.fromDate}
+          onChange={page.setFromDate}
+          type="date"
+        />
+        <Input
+          label=""
+          value={page.toDate}
+          onChange={page.setToDate}
+          type="date"
+        />
+        <AsyncSearchableSelect
+          label=""
+          loadOptions={loadExpenseCategories}
+          value={page.expenseTypeFilter}
+          onChange={page.setExpenseTypeFilter}
+        />
+        <AsyncSearchableSelect
+          label=""
+          loadOptions={loadPaymentTypeSearch}
+          value={page.paymentTypeFilter}
+          onChange={page.setPaymentTypeFilter}
+        />
+      </FilterBar>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Panel izquierdo — Crear */}
-        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-6">
-          <h3 className="text-sm font-medium text-gray-700">
-            Nuevo {vocab.expense.toLowerCase()}
-          </h3>
+      <ContentCard
+        title={`${vocab.expense}s`}
+        count={
+          !page.isLoading
+            ? `${page.expenses.length} registro${page.expenses.length !== 1 ? "s" : ""}`
+            : undefined
+        }
+      >
+        <GenericDataTable<Expense>
+          data={page.expenses}
+          columns={columns}
+          loading={page.isLoading}
+          error={page.isError}
+          rowKey={(row) => row.id}
+          emptyMessage={`No se encontraron ${vocab.expense.toLowerCase()}s`}
+          rowActions={[
+            {
+              id: "edit",
+              label: "Editar",
+              variant: "edit",
+              onClick: (row) => page.openEditModal(row),
+            },
+            {
+              id: "delete",
+              label: page.isDeleting ? "Eliminando…" : "Eliminar",
+              variant: "delete",
+              disabled: () => page.isDeleting,
+              onClick: (row) => {
+                if (window.confirm(`¿Eliminar este ${vocab.expense.toLowerCase()}?`))
+                  page.removeExpense(row.id);
+              },
+            },
+          ]}
+        />
+      </ContentCard>
 
-          <Input label="Descripción" value={expensePage.description} onChange={expensePage.setDescription} />
-          <Input label="Precio"      value={expensePage.price}       onChange={expensePage.setPrice} />
-
-          <AsyncSearchableSelect
-            label={vocab.expenseCategory}
-            loadOptions={loadExpenseCategories}
-            value={expensePage.expenseTypeSelected}
-            onChange={expensePage.setExpenseTypeSelected}
-          />
-          <AsyncSearchableSelect
-            label={vocab.paymentType}
-            loadOptions={loadPaymentTypeSearch}
-            value={expensePage.paymentTypeSelected}
-            onChange={expensePage.setPaymentTypeSelected}
-          />
-
-          <Input
-            type="date"
-            label={`Fecha del ${vocab.expense.toLowerCase()}`}
-            value={expensePage.expenseDate}
-            onChange={expensePage.setExpenseDate}
-          />
-
-          <button
-            onClick={expensePage.addExpense}
-            disabled={expensePage.isCreating || !expensePage.expenseDate}
-            className={`w-full rounded-lg py-2.5 text-sm font-medium transition-colors ${
-              expensePage.isCreating ? "bg-gray-400 cursor-not-allowed" : "bg-black text-white hover:bg-gray-800"
-            }`}
-          >
-            {expensePage.isCreating ? "Agregando..." : `Agregar ${vocab.expense.toLowerCase()}`}
-          </button>
-        </div>
-
-        {/* Panel derecho */}
-        <div className="col-span-12 lg:col-span-9 space-y-6">
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-6">
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-              <h3 className="text-sm font-medium text-gray-700">Filtros</h3>
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-12 md:col-span-6">
-                  <Input
-                    label="Buscar descripción"
-                    value={expensePage.search}
-                    onChange={expensePage.setSearch}
-                    placeholder="Ej: Alquiler"
-                  />
-                </div>
-                <div className="col-span-12 md:col-span-6">
-                  <AsyncSearchableSelect
-                    label={`Filtrar por ${vocab.expenseCategory.toLowerCase()}`}
-                    loadOptions={loadExpenseCategories}
-                    value={expensePage.expenseTypeFilter}     
-                    onChange={expensePage.setExpenseTypeFilter}  
-                  />
-                </div>
-              </div>
-              <div className="border-t pt-4 flex justify-start">
-                <button
-                  type="button"
-                  onClick={expensePage.clearFilters}
-                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  Limpiar filtros
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
-            {!expensePage.isLoading && (
-              <p className="text-sm text-gray-600">
-                {expensePage.expenses.length} {vocab.expense.toLowerCase()}
-                {expensePage.expenses.length !== 1 && "s"} encontrado
-                {expensePage.expenses.length !== 1 && "s"}
-              </p>
-            )}
-
-            {!expensePage.isLoading && expensePage.expenses.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-sm">
-                  No se encontraron {vocab.expense.toLowerCase()}s con los filtros seleccionados.
-                </p>
-              </div>
-            ) : (
-              <GenericDataTable<Expense>
-                data={expensePage.expenses}
-                columns={columns}
-                loading={expensePage.isLoading}
-                error={expensePage.isError}
-                rowKey={(row) => row.id}
-                rowActions={[
-                  {
-                    id: "edit",
-                    label: "Editar",
-                    variant: "edit",
-                    onClick: (row) => expensePage.openEditModal(row),
-                  },
-                  {
-                    id: "delete",
-                    label: expensePage.isDeleting ? "Eliminando..." : "Eliminar",
-                    variant: "delete",
-                    disabled: () => expensePage.isDeleting,
-                    onClick: (row) => {
-                      if (window.confirm(`¿Eliminar este ${vocab.expense.toLowerCase()}?`))
-                        expensePage.removeExpense(row.id);
-                    },
-                  },
-                ]}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Modal editar — props exactas que espera EditExpenseModal */}
-      {expensePage.editingExpense && (
+      {page.editingExpense && (
         <EditExpenseModal
-          expenseType={expensePage.editExpenseType}
-          paymentType={expensePage.editPaymentType}
-          description={expensePage.editDescription}
-          expenseDate={expensePage.editExpenseDate}
-          price={expensePage.editPrice}
-          isUpdating={expensePage.isUpdating}
+          expenseType={page.editExpenseType}
+          paymentType={page.editPaymentType}
+          description={page.editDescription}
+          expenseDate={page.editExpenseDate}
+          price={page.editPrice}
+          isUpdating={page.isUpdating}
           loadExpenseTypes={loadExpenseCategories}
           loadPaymentTypes={loadPaymentTypeSearch}
-          onChangeExpenseType={expensePage.setEditExpenseType}
-          onChangePaymentType={expensePage.setEditPaymentType}
-          onChangeDescription={expensePage.setEditDescription}
-          onChangeExpenseDate={expensePage.setEditExpenseDate}
-          onChangePrice={expensePage.setEditPrice}
-          onSave={expensePage.saveEditExpense}
-          onClose={() => expensePage.setEditingExpense(null)}
+          onChangeExpenseType={page.setEditExpenseType}
+          onChangePaymentType={page.setEditPaymentType}
+          onChangeDescription={page.setEditDescription}
+          onChangeExpenseDate={page.setEditExpenseDate}
+          onChangePrice={page.setEditPrice}
+          onSave={page.saveEditExpense}
+          onClose={() => page.setEditingExpense(null)}
         />
       )}
-    </section>
+    </PageLayout>
   );
 }

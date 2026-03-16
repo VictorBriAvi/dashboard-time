@@ -1,116 +1,121 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import GenericDataTable from "@/ui/dataTable/GenericDataTable";
-import { Input } from "@/ui/inputs/Input";
+import Link from "next/link";
 import { ServiceCategorie } from "@/core/models/serviceCategorie/serviceCategorie";
+
 import { EditServiceCategoryModal } from "./modal/EditServiceCategoryModal";
-import { useServiceCategoryPage } from "./hook/useServiceCategoryPage";
 import { useAuthStore } from "@/shared/store/useAuthStore";
+import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { PageLayout, FormPanel, ContentCard, FilterBar, Btn } from "@/ui/PageLayout";
+import { Input } from "@/ui/inputs/Input";
+import { useServiceCategoryPage } from "./hook/useServiceCategoryPage";
 
 export default function ServiceCategoryPage() {
-  const categoryPage = useServiceCategoryPage();
+  const page = useServiceCategoryPage();
   const { vocab } = useAuthStore();
 
   const columns: ColumnDef<ServiceCategorie>[] = [
-    { header: "Nombre", accessorKey: "name" },
+    {
+      header: "Nombre",
+      accessorKey: "name",
+      cell: ({ getValue }) => (
+        <span className="font-medium text-gray-900">{getValue<string>()}</span>
+      ),
+    },
   ];
 
+  const formPanel = (
+    <FormPanel title={`Nueva ${vocab.serviceCategory.toLowerCase()}`}>
+      <Input
+        label="Nombre"
+        value={page.name}
+        onChange={page.setName}
+        disabled={page.isCreating}
+        placeholder="Ej: Cabello, Uñas..."
+      />
+      <Btn
+        variant="primary"
+        className="w-full justify-center mt-1"
+        onClick={page.addCategory}
+        loading={page.isCreating}
+        disabled={!page.name.trim()}
+      >
+        Guardar categoría
+      </Btn>
+    </FormPanel>
+  );
+
   return (
-    <section className="w-full px-6 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white rounded-2xl shadow-md p-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800">{vocab.serviceCategory}s</h2>
-          <p className="text-sm text-gray-500">
-            Gestiona las categorías utilizadas en los {vocab.service.toLowerCase()}s
-          </p>
-        </div>
-      </div>
+    <PageLayout
+      title={`${vocab.serviceCategory}s`}
+      subtitle="Agrupadores de tipos de servicio"
+      actions={
+        <Link
+          href="/serviceType"
+          className="text-sm font-medium text-[#185FA5] hover:underline"
+        >
+          ← Ver servicios
+        </Link>
+      }
+      sidebar={formPanel}
+    >
+      <FilterBar onClear={() => page.setSearch("")}>
+        <Input
+          label=""
+          value={page.search}
+          onChange={page.setSearch}
+          placeholder="Buscar categoría..."
+        />
+      </FilterBar>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Panel izquierdo */}
-        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-6">
-          <h3 className="text-sm font-medium text-gray-700">Nueva categoría</h3>
+      <ContentCard
+        title="Categorías"
+        count={
+          !page.isLoading
+            ? `${page.categories.length} registrada${page.categories.length !== 1 ? "s" : ""}`
+            : undefined
+        }
+      >
+        <GenericDataTable<ServiceCategorie>
+          data={page.categories}
+          columns={columns}
+          loading={page.isLoading}
+          error={page.isError}
+          rowKey={(row) => row.id}
+          emptyMessage="No se encontraron categorías"
+          rowActions={[
+            {
+              id: "edit",
+              label: "Editar",
+              variant: "edit",
+              onClick: page.openEditModal,
+            },
+            {
+              id: "delete",
+              label: page.isDeleting ? "Eliminando…" : "Eliminar",
+              variant: "delete",
+              disabled: () => page.isDeleting,
+              onClick: (row) => {
+                if (window.confirm(`¿Eliminar la categoría "${row.name}"?`))
+                  page.removeCategory(row.id);
+              },
+            },
+          ]}
+        />
+      </ContentCard>
 
-          <Input label="Nombre de la categoría" value={categoryPage.name} onChange={categoryPage.setName} disabled={categoryPage.isCreating} />
-
-          <button
-            onClick={categoryPage.addCategory}
-            disabled={categoryPage.isCreating}
-            className={`w-full rounded-lg py-2.5 text-sm font-medium transition-colors ${
-              categoryPage.isCreating ? "bg-gray-400 cursor-not-allowed" : "bg-black text-white hover:bg-gray-800"
-            }`}
-          >
-            {categoryPage.isCreating ? "Agregando..." : "Agregar categoría"}
-          </button>
-        </div>
-
-        {/* Panel derecho */}
-        <div className="col-span-12 lg:col-span-9 space-y-6">
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-6">
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-              <h3 className="text-sm font-medium text-gray-700">Filtros</h3>
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-12">
-                  <Input label="Buscar categoría" value={categoryPage.search} onChange={categoryPage.setSearch} placeholder="Ej: Producción" />
-                </div>
-              </div>
-              <div className="border-t pt-4 flex justify-start">
-                <button type="button" onClick={() => categoryPage.setSearch("")} className="text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                  Limpiar filtros
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
-            {!categoryPage.isLoading && (
-              <p className="text-sm text-gray-600">
-                {categoryPage.categories.length} categoría
-                {categoryPage.categories.length !== 1 && "s"} encontrada
-                {categoryPage.categories.length !== 1 && "s"}
-              </p>
-            )}
-            {!categoryPage.isLoading && categoryPage.categories.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-sm">No se encontraron categorías.</p>
-              </div>
-            ) : (
-              <GenericDataTable<ServiceCategorie>
-                data={categoryPage.categories}
-                columns={columns}
-                loading={categoryPage.isLoading}
-                error={categoryPage.isError}
-                rowKey={(row) => row.id}
-                rowActions={[
-                  { id: "edit", label: "Editar", variant: "edit", onClick: (row) => categoryPage.openEditModal(row) },
-                  {
-                    id: "delete",
-                    label: categoryPage.isDeleting ? "Eliminando..." : "Eliminar",
-                    variant: "delete",
-                    disabled: () => categoryPage.isDeleting,
-                    onClick: (row) => {
-                      if (window.confirm(`¿Eliminar la categoría "${row.name}"?`))
-                        categoryPage.removeCategory(row.id);
-                    },
-                  },
-                ]}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {categoryPage.editingCategory && (
+      {page.editingCategory && (
         <EditServiceCategoryModal
-          category={categoryPage.editingCategory}
-          isUpdating={categoryPage.isUpdating}
-          onChangeName={(v) => categoryPage.setEditingCategory({ ...categoryPage.editingCategory!, name: v })}
-          onClose={() => categoryPage.setEditingCategory(null)}
-          onSave={categoryPage.saveCategory}
+          category={page.editingCategory}
+          isUpdating={page.isUpdating}
+          onChangeName={(v) =>
+            page.setEditingCategory({ ...page.editingCategory!, name: v })
+          }
+          onClose={() => page.setEditingCategory(null)}
+          onSave={page.saveCategory}
         />
       )}
-    </section>
+    </PageLayout>
   );
 }

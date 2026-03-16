@@ -1,218 +1,220 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import GenericDataTable from "@/ui/dataTable/GenericDataTable";
-import { Input } from "@/ui/inputs/Input";
-import { EditPaymentTypeModal } from "./modal/EditPaymentTypeModal";
 import { PaymentType } from "@/core/models/paymentType/PaymentType";
 import { usePaymentTypePage } from "./hook/usePaymentTypePage";
+import { EditPaymentTypeModal } from "./modal/EditPaymentTypeModal";
 import { useAuthStore } from "@/shared/store/useAuthStore";
+import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { PageLayout, FormPanel, ContentCard, FilterBar, Btn } from "@/ui/PageLayout";
+import { Input } from "@/ui/inputs/Input";
+
+// Toggle component reutilizable
+function Toggle({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
+  return (
+    <label className="flex items-center gap-2.5 cursor-pointer select-none">
+      <div
+        onClick={() => onChange(!checked)}
+        style={{
+          width: 36,
+          height: 20,
+          borderRadius: 10,
+          background: checked ? "#185FA5" : "#d1d5db",
+          position: "relative",
+          transition: "background 0.2s",
+          flexShrink: 0,
+          cursor: "pointer",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: 2,
+            left: checked ? 18 : 2,
+            width: 16,
+            height: 16,
+            borderRadius: "50%",
+            background: "#fff",
+            transition: "left 0.2s",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          }}
+        />
+      </div>
+      <span className="text-sm text-gray-600">{label}</span>
+    </label>
+  );
+}
 
 export default function PaymentTypePage() {
-  const paymentTypePage = usePaymentTypePage();
+  const page = usePaymentTypePage();
   const { vocab } = useAuthStore();
 
-  console.log(paymentTypePage);
-
   const columns: ColumnDef<PaymentType>[] = [
-    { header: "Nombre", accessorKey: "name" },
     {
-      header: "¿Aplica descuento?",
-      accessorKey: "applyDiscount",
-      cell: ({ getValue }: any) => (getValue() ? "Sí" : "No"),
+      header: "Nombre",
+      accessorKey: "name",
+      cell: ({ getValue }) => (
+        <span className="font-medium text-gray-900">{getValue<string>()}</span>
+      ),
     },
-    { header: "Porcentaje descuento", accessorKey: "discountPercent" },
     {
-      header: "¿Aplica recargo?",
+      header: "Recargo",
       accessorKey: "applySurcharge",
-      cell: ({ getValue }: any) => (getValue() ? "Sí" : "No"),
+      cell: ({ row }) =>
+        row.original.applySurcharge ? (
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+            style={{ background: "#FAEEDA", color: "#854F0B" }}
+          >
+            +{row.original.surchargePercent}%
+          </span>
+        ) : (
+          <span className="text-xs text-gray-400">Sin recargo</span>
+        ),
     },
-    { header: "Porcentaje recargo", accessorKey: "surchargePercent" },
+    {
+      header: "Desc. app",
+      accessorKey: "applyDiscount",
+      cell: ({ row }) =>
+        row.original.applyDiscount ? (
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+            style={{ background: "#E6F1FB", color: "#185FA5" }}
+          >
+            {row.original.discountPercent}%
+          </span>
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
+    },
   ];
 
+  const formPanel = (
+    <FormPanel title={`Nuevo ${vocab.paymentType.toLowerCase()}`}>
+      <Input
+        label="Nombre"
+        value={page.name}
+        onChange={page.setName}
+        disabled={page.isCreating}
+        placeholder="Ej: Efectivo, Débito..."
+      />
+
+      <div className="pt-1">
+        <Toggle
+          checked={page.applySurcharge}
+          onChange={page.setApplySurcharge}
+          label="Aplicar recargo"
+        />
+        {page.applySurcharge && (
+          <div className="mt-3">
+            <Input
+              label="% de recargo"
+              value={String(page.surchargePercent)}
+              onChange={(v) => page.setSurchargePercent(Number(v))}
+              placeholder="Ej: 10"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="pt-1">
+        <Toggle
+          checked={page.applyDiscount}
+          onChange={page.setApplyDiscount}
+          label="Descuento de app"
+        />
+        {page.applyDiscount && (
+          <div className="mt-3">
+            <Input
+              label="% descuento app"
+              value={String(page.discountPercent)}
+              onChange={(v) => page.setDiscountPercent(Number(v))}
+              placeholder="Ej: 3"
+            />
+          </div>
+        )}
+      </div>
+
+      <Btn
+        variant="primary"
+        className="w-full justify-center mt-1"
+        onClick={page.addPaymentType}
+        loading={page.isCreating}
+        disabled={!page.name.trim()}
+      >
+        Guardar
+      </Btn>
+    </FormPanel>
+  );
+
   return (
-    <section className="w-full px-6 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white rounded-2xl shadow-md p-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800">
-            {vocab.paymentType}s
-          </h2>
-          <p className="text-sm text-gray-500">
-            Gestiona los {vocab.paymentType.toLowerCase()}s disponibles en el
-            sistema
-          </p>
-        </div>
-      </div>
+    <PageLayout
+      title={vocab.paymentType}
+      subtitle="Configurá recargas y descuentos por medio de pago"
+      sidebar={formPanel}
+    >
+      <FilterBar onClear={() => page.setSearch("")}>
+        <Input
+          label=""
+          value={page.search}
+          onChange={page.setSearch}
+          placeholder={`Buscar ${vocab.paymentType.toLowerCase()}...`}
+        />
+      </FilterBar>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Panel izquierdo */}
-        {/* Panel izquierdo */}
-        <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-md p-6 space-y-6">
-          <h3 className="text-sm font-medium text-gray-700">
-            Nuevo {vocab.paymentType.toLowerCase()}
-          </h3>
+      <ContentCard
+        title="Medios configurados"
+        count={
+          !page.isLoading
+            ? `${page.paymentTypes.length} activo${page.paymentTypes.length !== 1 ? "s" : ""}`
+            : undefined
+        }
+      >
+        <GenericDataTable<PaymentType>
+          data={page.paymentTypes}
+          columns={columns}
+          loading={page.isLoading}
+          error={page.isError}
+          rowKey={(row) => row.id}
+          emptyMessage={`No se encontraron ${vocab.paymentType.toLowerCase()}s`}
+          rowActions={[
+            {
+              id: "edit",
+              label: "Editar",
+              variant: "edit",
+              onClick: page.openEditModal,
+            },
+            {
+              id: "delete",
+              label: page.isDeleting ? "Eliminando…" : "Eliminar",
+              variant: "delete",
+              disabled: () => page.isDeleting,
+              onClick: (row) => {
+                if (window.confirm(`¿Eliminar "${row.name}"?`))
+                  page.removePaymentType(row.id);
+              },
+            },
+          ]}
+        />
+      </ContentCard>
 
-          <Input
-            label="Nombre"
-            value={paymentTypePage.name}
-            onChange={paymentTypePage.setName}
-            disabled={paymentTypePage.isCreating}
-          />
-
-          {/* Descuento */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="applyDiscount"
-              checked={paymentTypePage.applyDiscount}
-              onChange={(e) =>
-                paymentTypePage.setApplyDiscount(e.target.checked)
-              }
-              disabled={paymentTypePage.isCreating}
-              className="w-4 h-4 accent-black"
-            />
-            <label htmlFor="applyDiscount" className="text-sm text-gray-700">
-              Aplica descuento
-            </label>
-          </div>
-
-          {paymentTypePage.applyDiscount && (
-            <Input
-              label="Porcentaje de descuento (%)"
-              value={paymentTypePage.discountPercent}
-              onChange={(v) => paymentTypePage.setDiscountPercent(Number(v))}
-              disabled={paymentTypePage.isCreating}
-            />
-          )}
-
-          {/* Recargo */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="applySurcharge"
-              checked={paymentTypePage.applySurcharge}
-              onChange={(e) =>
-                paymentTypePage.setApplySurcharge(e.target.checked)
-              }
-              disabled={paymentTypePage.isCreating}
-              className="w-4 h-4 accent-black"
-            />
-            <label htmlFor="applySurcharge" className="text-sm text-gray-700">
-              Aplica recargo
-            </label>
-          </div>
-
-          {paymentTypePage.applySurcharge && (
-            <Input
-              label="Porcentaje de recargo (%)"
-              value={paymentTypePage.surchargePercent}
-              onChange={(v) => paymentTypePage.setSurchargePercent(Number(v))}
-              disabled={paymentTypePage.isCreating}
-            />
-          )}
-
-          <button
-            onClick={paymentTypePage.addPaymentType}
-            disabled={paymentTypePage.isCreating}
-            className={`w-full rounded-lg py-2.5 text-sm font-medium transition-colors ${
-              paymentTypePage.isCreating
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-black text-white hover:bg-gray-800"
-            }`}
-          >
-            {paymentTypePage.isCreating
-              ? "Agregando..."
-              : `Agregar ${vocab.paymentType.toLowerCase()}`}
-          </button>
-        </div>
-
-        {/* Panel derecho */}
-        <div className="col-span-12 lg:col-span-9 space-y-6">
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-6">
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-              <h3 className="text-sm font-medium text-gray-700">Filtros</h3>
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-12 md:col-span-6">
-                  <Input
-                    label={`Buscar ${vocab.paymentType.toLowerCase()}`}
-                    value={paymentTypePage.search}
-                    onChange={paymentTypePage.setSearch}
-                  />
-                </div>
-              </div>
-              <div className="border-t pt-4 flex justify-start">
-                <button
-                  type="button"
-                  onClick={() => paymentTypePage.setSearch("")}
-                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  Limpiar filtros
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
-            {!paymentTypePage.isLoading && (
-              <p className="text-sm text-gray-600">
-                {paymentTypePage.paymentTypes.length}{" "}
-                {vocab.paymentType.toLowerCase()}
-                {paymentTypePage.paymentTypes.length !== 1 && "s"} encontrado
-                {paymentTypePage.paymentTypes.length !== 1 && "s"}
-              </p>
-            )}
-            {!paymentTypePage.isLoading &&
-            paymentTypePage.paymentTypes.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-sm">
-                  No se encontraron {vocab.paymentType.toLowerCase()}s.
-                </p>
-              </div>
-            ) : (
-              <GenericDataTable<PaymentType>
-                data={paymentTypePage.paymentTypes}
-                columns={columns}
-                loading={paymentTypePage.isLoading}
-                error={paymentTypePage.isError}
-                rowKey={(row) => row.id}
-                rowActions={[
-                  {
-                    id: "edit",
-                    label: "Editar",
-                    variant: "edit",
-                    onClick: paymentTypePage.openEditModal,
-                  },
-                  {
-                    id: "delete",
-                    label: paymentTypePage.isDeleting
-                      ? "Eliminando..."
-                      : "Eliminar",
-                    variant: "delete",
-                    disabled: () => paymentTypePage.isDeleting,
-                    onClick: (row) => {
-                      if (window.confirm(`¿Eliminar "${row.name}"?`))
-                        paymentTypePage.removePaymentType(row.id);
-                    },
-                  },
-                ]}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {paymentTypePage.editingPaymentType && (
+      {page.editingPaymentType && (
         <EditPaymentTypeModal
-          paymentType={paymentTypePage.editingPaymentType}
-          isUpdating={paymentTypePage.isUpdating}
-          onChange={(updated: PaymentType) =>
-            paymentTypePage.setEditingPaymentType(updated)
-          }
-          onClose={() => paymentTypePage.setEditingPaymentType(null)}
-          onSave={paymentTypePage.savePaymentType}
+          paymentType={page.editingPaymentType}
+          isUpdating={page.isUpdating}
+          onChange={page.setEditingPaymentType}
+          onClose={() => page.setEditingPaymentType(null)}
+          onSave={page.savePaymentType}
         />
       )}
-    </section>
+    </PageLayout>
   );
 }

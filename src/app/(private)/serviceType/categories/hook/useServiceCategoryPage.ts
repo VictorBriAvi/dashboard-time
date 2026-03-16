@@ -44,13 +44,6 @@ export function useServiceCategoryPage() {
       { name },
       {
         onSuccess: () => setName(""),
-        // ✅ FIX: onError agregado
-        onError: (error: any) => {
-          const msg =
-            error?.response?.data?.message ??
-            "Error al crear la categoría. Intentá de nuevo.";
-          alert(msg);
-        },
       }
     );
   };
@@ -60,15 +53,7 @@ export function useServiceCategoryPage() {
   // ======================
   const removeCategory = (id: number) => {
     if (deleteCategory.isPending) return;
-    deleteCategory.mutate(id, {
-      // ✅ FIX: onError agregado
-      onError: (error: any) => {
-        const msg =
-          error?.response?.data?.message ??
-          "Error al eliminar la categoría. Intentá de nuevo.";
-        alert(msg);
-      },
-    });
+    deleteCategory.mutate(id);
   };
 
   // ======================
@@ -83,13 +68,6 @@ export function useServiceCategoryPage() {
 
     updateCategory.mutate(editingCategory, {
       onSuccess: () => setEditingCategory(null),
-      // ✅ FIX: onError agregado — antes el error se tragaba en silencio
-      onError: (error: any) => {
-        const msg =
-          error?.response?.data?.message ??
-          "Error al guardar la categoría. Intentá de nuevo.";
-        alert(msg);
-      },
     });
   };
 

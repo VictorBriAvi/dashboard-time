@@ -1,5 +1,6 @@
 "use client";
 
+import { Modal, ModalFooter, ModalField } from "@/ui/Modals";
 import { Input } from "@/ui/inputs/Input";
 import { AsyncSearchableSelect, Option } from "@/ui/inputs/SearchSelect";
 
@@ -8,75 +9,61 @@ type Props = {
   name: string;
   price: string;
   isUpdating: boolean;
-
   loadCategories: (input: string) => Promise<Option[]>;
-
   onChangeCategory: (option: Option | null) => void;
   onChangeName: (value: string) => void;
   onChangePrice: (value: string) => void;
-
   onClose: () => void;
   onSave: () => void;
 };
 
 export function EditServiceTypeModal({
-  category,
-  name,
-  price,
-  isUpdating,
-  loadCategories,
-  onChangeCategory,
-  onChangeName,
-  onChangePrice,
-  onClose,
-  onSave,
+  category, name, price, isUpdating,
+  loadCategories, onChangeCategory, onChangeName, onChangePrice,
+  onClose, onSave,
 }: Props) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md space-y-4">
-        <h3 className="text-lg font-semibold">Editar servicio</h3>
-
-        <AsyncSearchableSelect
-          label="Categoría"
-          loadOptions={loadCategories}
-          value={category}
-          onChange={onChangeCategory}
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Editar servicio"
+      subtitle={name}
+      size="sm"
+      footer={
+        <ModalFooter
+          onCancel={onClose}
+          onConfirm={onSave}
+          isLoading={isUpdating}
+          confirmLabel="Guardar cambios"
         />
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <ModalField label="Categoría" required>
+          <AsyncSearchableSelect
+            label=""
+            loadOptions={loadCategories}
+            value={category}
+            onChange={onChangeCategory}
+          />
+        </ModalField>
 
-        <Input
-          label="Nombre del servicio"
-          value={name}
-          onChange={onChangeName}
-          disabled={isUpdating}
-        />
+        <ModalField label="Nombre del servicio" required>
+          <Input
+            value={name}
+            onChange={onChangeName}
+            placeholder="Ej: Corte de cabello"
+          />
+        </ModalField>
 
-        <Input
-          label="Precio"
-          value={price}
-          onChange={onChangePrice}
-          disabled={isUpdating}
-        />
-
-        <div className="flex justify-end gap-2 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isUpdating}
-            className="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300"
-          >
-            Cancelar
-          </button>
-
-          <button
-            onClick={onSave}
-            disabled={isUpdating}
-            className={`px-4 py-2 text-sm rounded-md text-white ${
-              isUpdating ? "bg-gray-400" : "bg-black hover:bg-gray-800"
-            }`}
-          >
-            {isUpdating ? "Guardando..." : "Guardar"}
-          </button>
-        </div>
+        <ModalField label="Precio" required>
+          <Input
+            value={price}
+            onChange={onChangePrice}
+            placeholder="$0"
+          />
+        </ModalField>
       </div>
-    </div>
+    </Modal>
   );
 }

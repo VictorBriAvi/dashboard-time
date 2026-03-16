@@ -5,10 +5,13 @@ import { AsyncSearchableSelect, Option } from "@/ui/inputs/SearchSelect";
 import { PaymentModal } from "@/ui/sales/Modals/PaymentModal";
 import { PaymentItem } from "@/ui/sales/Modals/Hook/usePaymentModal";
 import GenericDataTable from "@/ui/dataTable/GenericDataTable";
+import { Modal } from "@/ui/Modals";
+import { Btn } from "@/ui/PageLayout";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatARS } from "@/core/utils/format";
 import { Sale } from "@/core/models/sales/Sale";
 import { CreateSaleDraft } from "@/core/models/sales/CreateSaleDraft";
+import { Input } from "@/ui/inputs/Input";
 
 type ServiceRow = {
   serviceTypeId: number;
@@ -32,20 +35,13 @@ type Props = {
 };
 
 export function EditSaleModal({
-  sale,
-  isUpdating,
-  loadClients,
-  loadEmployees,
-  loadServiceTypes,
-  onSave,
-  onClose,
+  sale, isUpdating, loadClients, loadEmployees, loadServiceTypes, onSave, onClose,
 }: Props) {
   const [client, setClient] = useState<Option | null>({
     value: sale.clientId,
     label: sale.nameClient,
   });
 
-  // ✅ FIX: null safety + filtrar detalles eliminados lógicamente
   const [details, setDetails] = useState<ServiceRow[]>(() =>
     (sale.saleDetail ?? [])
       .filter((d) => !d.isDeleted)
@@ -56,12 +52,11 @@ export function EditSaleModal({
         employeeName: d.nameEmployeeSale,
         unitPrice: d.unitPrice,
         discountPercent: d.discountPercent,
-        additionalCharge: d.additionalCharge,
+        additionalCharge: d.additionalCharge < 0 ? 0 : d.additionalCharge,
         total: d.totalCalculated,
       }))
   );
 
-  // ✅ FIX: null safety en pagos iniciales
   const initialPayments: PaymentItem[] = (sale.payments ?? []).map((p) => ({
     paymentMethodId: p.paymentTypeId,
     paymentMethodName: p.paymentTypeName,
@@ -69,7 +64,6 @@ export function EditSaleModal({
   }));
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-
   const [serviceSelected, setServiceSelected] = useState<(Option & { price?: number }) | null>(null);
   const [employeeSelected, setEmployeeSelected] = useState<Option | null>(null);
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -80,21 +74,19 @@ export function EditSaleModal({
   const addDetail = () => {
     if (!serviceSelected || !employeeSelected) return;
     const price = serviceSelected.price ?? 0;
-    const total = (price + additionalCharge) * (1 - discountPercent / 100);
+    const safeAdditional = Math.max(0, additionalCharge);
+    const total = (price + safeAdditional) * (1 - discountPercent / 100);
 
-    setDetails((prev) => [
-      ...prev,
-      {
-        serviceTypeId: serviceSelected.value,
-        serviceName: serviceSelected.label,
-        employeeId: employeeSelected.value,
-        employeeName: employeeSelected.label,
-        unitPrice: price,
-        discountPercent,
-        additionalCharge,
-        total,
-      },
-    ]);
+    setDetails((prev) => [...prev, {
+      serviceTypeId: serviceSelected.value,
+      serviceName: serviceSelected.label,
+      employeeId: employeeSelected.value,
+      employeeName: employeeSelected.label,
+      unitPrice: price,
+      discountPercent,
+      additionalCharge: safeAdditional,
+      total,
+    }]);
 
     setServiceSelected(null);
     setEmployeeSelected(null);
@@ -109,19 +101,9 @@ export function EditSaleModal({
     if (!client) return;
     onSave({
       clientId: client.value,
-      saleDetails: details.map(({
-        serviceTypeId,
-        employeeId,
-        unitPrice,
-        discountPercent,
-        additionalCharge,
-        total,
-      }) => ({
-        serviceTypeId,
-        employeeId,
-        unitPrice,
-        discountPercent,
-        additionalCharge,
+      saleDetails: details.map(({ serviceTypeId, employeeId, unitPrice, discountPercent, additionalCharge, total }) => ({
+        serviceTypeId, employeeId, unitPrice, discountPercent,
+        additionalCharge: Math.max(0, additionalCharge),
         total,
       })),
       payments: payments.map((p) => ({
@@ -133,31 +115,34 @@ export function EditSaleModal({
   };
 
   const columns: ColumnDef<ServiceRow>[] = [
-    { header: "Servicio", accessorKey: "serviceName" },
-    { header: "Colaborador", accessorKey: "employeeName" },
     {
-      header: "Precio",
-      accessorKey: "unitPrice",
-      cell: ({ getValue }) => formatARS(getValue<number>()),
+      header: "Servicio",
+      accessorKey: "serviceName",
+      cell: ({ getValue }) => (
+        <span className="font-medium text-gray-900">{getValue<string>()}</span>
+      ),
     },
-    { header: "Desc. %", accessorKey: "discountPercent" },
     {
-      header: "Adicional",
-      accessorKey: "additionalCharge",
-      cell: ({ getValue }) => formatARS(getValue<number>()),
+      header: "Colaborador",
+      accessorKey: "employeeName",
+      cell: ({ getValue }) => (
+        <span className="text-gray-500">{getValue<string>()}</span>
+      ),
     },
     {
       header: "Total",
       accessorKey: "total",
-      cell: ({ getValue }) => formatARS(getValue<number>()),
+      cell: ({ getValue }) => (
+        <span className="font-semibold">{formatARS(getValue<number>())}</span>
+      ),
     },
     {
       header: "",
-      id: "quitar",
+      id: "remove",
       cell: ({ row }) => (
         <button
           onClick={() => removeDetail(row.index)}
-          className="text-red-600 text-xs hover:underline"
+          className="text-red-500 hover:text-red-700 text-xs font-medium"
         >
           Quitar
         </button>
@@ -167,22 +152,51 @@ export function EditSaleModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-
-          <h3 className="text-lg font-semibold">Editar venta #{sale.id}</h3>
-
+      <Modal
+        isOpen
+        onClose={onClose}
+        title={`Editar venta #${sale.id}`}
+        subtitle={`${sale.nameClient} · ${sale.dateSale}`}
+        size="lg"
+        footer={
+          <div className="flex items-center justify-between w-full">
+            <span className="text-sm font-semibold text-gray-900">
+              Total: {formatARS(saleTotal)}
+            </span>
+            <div className="flex gap-2">
+              <Btn variant="secondary" onClick={onClose} disabled={isUpdating}>
+                Cancelar
+              </Btn>
+              <Btn
+                variant="primary"
+                onClick={() => setIsPaymentOpen(true)}
+                disabled={details.length === 0}
+                loading={isUpdating}
+              >
+                Confirmar pago →
+              </Btn>
+            </div>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-5">
           {/* Cliente */}
-          <AsyncSearchableSelect
-            label="Cliente"
-            loadOptions={loadClients}
-            value={client}
-            onChange={setClient}
-          />
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-1.5">Cliente</p>
+            <AsyncSearchableSelect
+              label=""
+              loadOptions={loadClients}
+              value={client}
+              onChange={setClient}
+            />
+          </div>
 
           {/* Agregar servicio */}
-          <div className="border rounded-xl p-4 space-y-3 bg-gray-50">
-            <p className="text-sm font-medium text-gray-600">Agregar servicio</p>
+          <div
+            className="rounded-xl p-4 flex flex-col gap-3"
+            style={{ background: "#f9fafb", border: "0.5px solid #f3f4f6" }}
+          >
+            <p className="text-xs font-semibold text-gray-500">Agregar servicio</p>
             <div className="grid grid-cols-2 gap-3">
               <AsyncSearchableSelect
                 label="Servicio"
@@ -198,74 +212,38 @@ export function EditSaleModal({
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500">Descuento (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={discountPercent}
-                  onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500">Adicional ($)</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={additionalCharge}
-                  onChange={(e) => setAdditionalCharge(Number(e.target.value))}
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                />
-              </div>
+              <Input
+                label="Descuento (%)"
+                value={String(discountPercent)}
+                onChange={(v) => setDiscountPercent(Number(v))}
+              />
+              <Input
+                label="Adicional ($)"
+                value={String(additionalCharge)}
+                onChange={(v) => setAdditionalCharge(Math.max(0, Number(v)))}
+              />
             </div>
-            <button
+            <Btn
+              variant="secondary"
               onClick={addDetail}
               disabled={!serviceSelected || !employeeSelected}
-              className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-fit"
             >
               + Agregar servicio
-            </button>
+            </Btn>
           </div>
 
           {/* Tabla servicios */}
-          {details.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">
-              No hay servicios en esta venta.
-            </p>
-          ) : (
-            <GenericDataTable
-              data={details}
-              columns={columns}
-              rowKey={(_, i) => i}
-            />
-          )}
-
-          {/* Total + acciones */}
-          <div className="flex justify-between items-center border-t pt-4">
-            <strong className="text-gray-800">Total: {formatARS(saleTotal)}</strong>
-            <div className="flex gap-2">
-              <button
-                onClick={onClose}
-                disabled={isUpdating}
-                className="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => setIsPaymentOpen(true)}
-                disabled={details.length === 0 || isUpdating}
-                className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {isUpdating ? "Guardando..." : "Confirmar pago"}
-              </button>
-            </div>
-          </div>
+          <GenericDataTable
+            data={details}
+            columns={columns}
+            rowKey={(_, i) => i}
+            emptyMessage="No hay servicios en esta venta"
+            skeletonRows={2}
+          />
         </div>
-      </div>
+      </Modal>
 
-      {/* ✅ PaymentModal con los pagos pre-cargados */}
       <PaymentModal
         isOpen={isPaymentOpen}
         totalAmount={saleTotal}

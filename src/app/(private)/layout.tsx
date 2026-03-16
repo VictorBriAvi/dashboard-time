@@ -1,8 +1,9 @@
 import { cookies }       from "next/headers"
 import { redirect }      from "next/navigation"
-import Navbar            from "@/ui/Navbar"
+import { Sidebar }       from "@/ui/Slidebar"
 import StoreProfileInitializer from "@/shared/components/StoreProfileInitializer"
 import ClientProviders   from "@/shared/components/ClientProviders"
+import { SidebarAwareMain } from "@/shared/components/SidebarAwareMain"
 
 export default async function PrivateLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -23,8 +24,14 @@ export default async function PrivateLayout({ children }: { children: React.Reac
         role={role}
         storeId={storeId}
       />
-      <Navbar />
-      <main className="pt-16">{children}</main>
+
+      {/* Sidebar fija — transiciona entre 210px y 56px */}
+      <Sidebar />
+
+      {/* Main — se desplaza en sync con el sidebar */}
+      <SidebarAwareMain>
+        {children}
+      </SidebarAwareMain>
     </ClientProviders>
   )
 }
